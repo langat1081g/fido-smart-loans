@@ -32,9 +32,24 @@ Object.keys(process.env).forEach(key => {
 
 console.log('✅ Bots loaded:', bots.map(b => b.botId));
 
-// ---------------- MIDDLEWARE (IMPORTANT FIX) ----------------
-app.use(express.json({ type: '*/*' })); // 🔥 FIX: parse all JSON bodies
+// ---------------- MIDDLEWARE ----------------
+app.use(express.json({ type: '*/*' }));
 app.use(express.urlencoded({ extended: true }));
+
+// ---------------- BOT ENTRY ROUTE (FIX) ----------------
+app.get('/bot/:botId', (req, res) => {
+  const botId = req.params.botId;
+  const bot = bots.find(b => b.botId === botId);
+
+  if (!bot) {
+    return res.status(404).send('Invalid bot');
+  }
+
+  // Redirect to frontend with botId
+  res.redirect(`/index.html?botId=${botId}`);
+});
+
+// ---------------- STATIC FILES ----------------
 app.use(express.static('public'));
 
 // ---------------- HELPERS ----------------
@@ -166,7 +181,7 @@ app.get('/check-pin/:id', (req, res) => {
 
 // ---------------- TELEGRAM CALLBACK ----------------
 app.post('/telegram-webhook/:botId', async (req, res) => {
-  console.log('📡 Telegram webhook hit:', req.body);
+  console.log('📡 Telegram webhook hit');
 
   const bot = getBot(req.params.botId);
   if (!bot) return res.sendStatus(404);
