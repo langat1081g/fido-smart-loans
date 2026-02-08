@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Application Successful</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+    }
+
+    .brand-bar {
+      width: 100%;
+      height: 72px;
+      display: flex;
+      align-items: stretch;
+    }
+
+    .brand-bar img {
+      height: 100%;
+      width: auto;
+    }
+
+    .brand-text-wrap {
+      flex: 1;
+      background: #0a8f55;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-text {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 32px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .success-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0a8f55;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 18px;
+    }
+
+    .reference {
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+      background: #f1f8f5;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 22px;
+    }
+
+    .info {
+      border-top: 1px solid #eee;
+      padding-top: 16px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #777;
+    }
+
+    .value {
+      font-weight: bold;
+      color: #333;
+      text-align: right;
+      max-width: 60%;
+      word-wrap: break-word;
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="brand-bar">
+    <img src="fido-logo.jpeg" alt="Fido Logo">
+    <div class="brand-text-wrap">
+      <div class="brand-text">FIDO LOANS</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="container">
+    <div class="success-icon">✅</div>
+    <h1>Application Successful</h1>
+    <div class="subtitle">
+      Your loan request has been verified successfully.
+    </div>
+
+    <!-- LOAN REFERENCE -->
+    <div class="reference">
+      Loan Reference: <span id="reference">—</span>
+    </div>
+
+    <div class="info">
+      <div class="row">
+        <div class="label">Full Name</div>
+        <div class="value" id="name">—</div>
+      </div>
+
+      <div class="row">
+        <div class="label">Phone Number</div>
+        <div class="value" id="phone">—</div>
+      </div>
+
+      <div class="row">
+        <div class="label">Email Address</div>
+        <div class="value" id="email">—</div>
+      </div>
+
+      <div class="row">
+        <div class="label">Loan Amount</div>
+        <div class="value" id="amount">—</div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Funds will be disbursed shortly if all checks are complete.
+    </div>
+  </div>
+
+  <script>
+    // Session validation
+    const fullName = localStorage.getItem('fullName');
+    const phone = localStorage.getItem('phone');
+
+    if (!fullName || !phone) {
+      alert('Session expired. Please start again.');
+      window.location.href = 'index.html';
+    }
+
+    // Load loan form data
+    let loanData = {};
+    try {
+      loanData = JSON.parse(localStorage.getItem('loanFormData')) || {};
+    } catch {
+      loanData = {};
+    }
+
+    // 🔑 Generate / reuse loan reference
+    function generateReference() {
+      const now = new Date();
+      const date =
+        now.getFullYear().toString() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0');
+
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      return `FIDO-${date}-${rand}`;
+    }
+
+    let reference = localStorage.getItem('loanReference');
+    if (!reference) {
+      reference = generateReference();
+      localStorage.setItem('loanReference', reference);
+    }
+
+    // Populate UI
+    document.getElementById('reference').textContent = reference;
+    document.getElementById('name').textContent = fullName;
+    document.getElementById('phone').textContent = phone;
+    document.getElementById('email').textContent = loanData.email || '—';
+
+    document.getElementById('amount').textContent = loanData.loanAmount
+      ? `KES ${Number(loanData.loanAmount).toLocaleString()}`
+      : '—';
+  </script>
+
+</body>
+</html>
