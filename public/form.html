@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Application</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+    }
+
+    /* ===== HEADER ===== */
+    .brand-bar {
+      width: 100%;
+      height: 72px;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid #eee;
+    }
+
+    .brand-bar img {
+      height: 100%;
+      width: auto;
+      display: block;
+    }
+
+    .brand-text-wrap {
+      flex: 1;
+      background: #e91e63;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-text {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+
+    /* ===== CONTENT ===== */
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .header {
+      margin-bottom: 22px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #0a8f55;
+    }
+
+    .header p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 6px;
+      color: #444;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #0a8f55;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      font-size: 14px;
+      color: #444;
+      align-items: flex-start;
+    }
+
+    .checkbox-wrapper input {
+      width: auto;
+      margin-top: 3px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      background: #0a8f55;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+
+    button:enabled {
+      opacity: 1;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="brand-bar">
+    <img src="fido-logo.jpeg" alt="Fido Logo">
+    <div class="brand-text-wrap">
+      <div class="brand-text">FIDO LOANS</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="container">
+
+    <div class="header">
+      <h1>Loan Application</h1>
+      <p>Provide your personal details</p>
+    </div>
+
+    <form id="loanForm">
+
+      <label>Full name</label>
+      <input name="fullName" required />
+
+      <label>Date of birth</label>
+      <input type="date" name="dob" required />
+
+      <label>Email address</label>
+      <input type="email" name="email" required />
+
+      <label>Residential address</label>
+      <input name="address" required />
+
+      <label>Employment status</label>
+      <select name="employmentStatus" required>
+        <option value="">Select</option>
+        <option>Employed</option>
+        <option>Self-employed</option>
+        <option>Unemployed</option>
+        <option>Student</option>
+      </select>
+
+      <label>Loan purpose</label>
+      <select name="loanPurpose" required>
+        <option value="">Select</option>
+        <option>Business</option>
+        <option>Personal</option>
+        <option>Education</option>
+        <option>Medical</option>
+        <option>Emergency</option>
+      </select>
+
+      <label>Loan amount</label>
+      <input type="number" name="loanAmount" required />
+
+      <label>Loan term</label>
+      <select name="loanTerm" required>
+        <option value="">Select</option>
+        <option>7 days</option>
+        <option>14 days</option>
+        <option>30 days</option>
+        <option>60 days</option>
+        <option>90 days</option>
+      </select>
+
+      <div class="checkbox-wrapper">
+        <input type="checkbox" id="termsCheck" />
+        <label for="termsCheck">I agree to the Terms and Conditions</label>
+      </div>
+
+      <div class="checkbox-wrapper">
+        <input type="checkbox" id="interestCheck" />
+        <label for="interestCheck">
+          I understand loans are subject to <strong>8%–15% interest per month</strong>
+          depending on credit score and loan amount.
+        </label>
+      </div>
+
+      <button id="continueBtn" type="submit" disabled>Continue</button>
+
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('loanForm');
+    const termsCheck = document.getElementById('termsCheck');
+    const interestCheck = document.getElementById('interestCheck');
+    const button = document.getElementById('continueBtn');
+
+    function updateButton() {
+      button.disabled = !(termsCheck.checked && interestCheck.checked);
+    }
+
+    termsCheck.addEventListener('change', updateButton);
+    interestCheck.addEventListener('change', updateButton);
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const data = Object.fromEntries(new FormData(form));
+
+      // Store full form data
+      localStorage.setItem('loanFormData', JSON.stringify(data));
+
+      // Store name separately (used later)
+      localStorage.setItem('fullName', data.fullName);
+
+      window.location.href = 'details.html';
+    });
+  </script>
+
+</body>
+</html>

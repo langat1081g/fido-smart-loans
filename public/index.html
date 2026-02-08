@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Qualifications</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    .brand-bar {
+      width: 100%;
+      height: 72px;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid #eee;
+    }
+
+    .brand-bar img {
+      height: 100%;
+      width: auto;
+      display: block;
+    }
+
+    .brand-text-wrap {
+      flex: 1;
+      background: #e91e63;
+      display: flex;
+      align-items: center;        /* vertical center */
+      justify-content: center;    /* horizontal center */
+    }
+
+    .brand-text {
+      color: #ffffff;
+      font-size: 26px;            /* BIGGER TEXT */
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+
+    /* ===== PAGE CONTENT ===== */
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .page-title h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #0a8f55;
+    }
+
+    .page-title p {
+      margin: 6px 0 18px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* ===== NOTICE BOX ===== */
+    .notice {
+      background: #f9f9f9;
+      border-left: 4px solid #0a8f55;
+      padding: 16px 14px;
+      margin-bottom: 20px;
+    }
+
+    .notice-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #0a8f55;
+    }
+
+    .notice ul {
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    .notice li {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    /* ===== CHECKBOX ===== */
+    .confirm {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      color: #444;
+      margin: 18px 0 28px;
+      align-items: flex-start;
+    }
+
+    .confirm input {
+      margin-top: 3px;
+    }
+
+    /* ===== BUTTON ===== */
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      background: #0a8f55;
+      color: white;
+      border: none;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+
+    button:enabled {
+      opacity: 1;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="brand-bar">
+    <img src="fido-logo.jpeg" alt="Fido Logo">
+    <div class="brand-text-wrap">
+      <div class="brand-text">FIDO LOANS</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="container">
+
+    <div class="page-title">
+      <h1>Loan Qualifications</h1>
+      <p>Please review before applying</p>
+    </div>
+
+    <div class="notice">
+      <div class="notice-title">Important Notice</div>
+      <ul>
+        <li>Must apply using a <strong>valid Telecel number</strong></li>
+        <li>Must be <strong>18 years or older</strong></li>
+        <li>Must be a <strong>Ghanaian living in Ghana</strong></li>
+        <li>Must have a <strong>valid Ghana Card</strong></li>
+        <li>
+          Must maintain at least <strong>10% of the loan amount</strong>
+          in your <strong>Telecel account</strong>
+        </li>
+      </ul>
+    </div>
+
+    <div class="confirm">
+      <input type="checkbox" id="agree">
+      <label for="agree">
+        I confirm that I meet all the above loan qualifications.
+      </label>
+    </div>
+
+    <button id="continueBtn" disabled onclick="start()">Continue</button>
+
+  </div>
+
+  <script>
+    const checkbox = document.getElementById('agree');
+    const button = document.getElementById('continueBtn');
+
+    checkbox.addEventListener('change', () => {
+      button.disabled = !checkbox.checked;
+    });
+
+    function start() {
+      window.location.href = "form.html";
+    }
+  </script>
+
+</body>
+</html>
