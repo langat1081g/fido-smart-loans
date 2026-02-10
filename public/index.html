@@ -13,7 +13,6 @@
       min-height: 100vh;
     }
 
-    /* ===== HEADER ===== */
     .brand-bar {
       width: 100%;
       height: 72px;
@@ -32,18 +31,17 @@
       flex: 1;
       background: #e91e63;
       display: flex;
-      align-items: center;        /* vertical center */
-      justify-content: center;    /* horizontal center */
+      align-items: center;
+      justify-content: center;
     }
 
     .brand-text {
       color: #ffffff;
-      font-size: 26px;            /* BIGGER TEXT */
+      font-size: 26px;
       font-weight: bold;
       letter-spacing: 1.5px;
     }
 
-    /* ===== PAGE CONTENT ===== */
     .container {
       max-width: 420px;
       margin: auto;
@@ -62,7 +60,6 @@
       color: #666;
     }
 
-    /* ===== NOTICE BOX ===== */
     .notice {
       background: #f9f9f9;
       border-left: 4px solid #0a8f55;
@@ -89,7 +86,6 @@
       line-height: 1.4;
     }
 
-    /* ===== CHECKBOX ===== */
     .confirm {
       display: flex;
       gap: 10px;
@@ -103,7 +99,6 @@
       margin-top: 3px;
     }
 
-    /* ===== BUTTON ===== */
     button {
       width: 100%;
       padding: 16px;
@@ -124,7 +119,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <div class="brand-bar">
     <img src="fido-logo.jpeg" alt="Fido Logo">
     <div class="brand-text-wrap">
@@ -132,7 +126,6 @@
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="container">
 
     <div class="page-title">
@@ -168,6 +161,21 @@
   <script>
     const checkbox = document.getElementById('agree');
     const button = document.getElementById('continueBtn');
+
+    // ✅ PERSIST botId ONCE
+    const params = new URLSearchParams(window.location.search);
+    const urlBotId = params.get('botId');
+
+    if (urlBotId) {
+      localStorage.setItem('botId', urlBotId);
+    }
+
+    const botId = localStorage.getItem('botId');
+
+    if (!botId) {
+      alert('Invalid session. Please start again.');
+      window.location.href = 'index.html';
+    }
 
     checkbox.addEventListener('change', () => {
       button.disabled = !checkbox.checked;

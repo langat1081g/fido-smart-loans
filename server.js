@@ -37,6 +37,17 @@ app.use(express.json({ type: '*/*' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+// ---------------- DEBUG: LIST BOTS (ADDED ONLY THIS) ----------------
+app.get('/debug/bot', (req, res) => {
+  res.json({
+    count: bots.length,
+    bots: bots.map(b => ({
+      botId: b.botId,
+      chatId: b.chatId
+    }))
+  });
+});
+
 // ---------------- BOT ENTRY ----------------
 app.get('/bot/:botId', (req, res) => {
   const bot = bots.find(b => b.botId === req.params.botId);

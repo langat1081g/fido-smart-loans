@@ -163,6 +163,13 @@
   const resendEl = document.getElementById('resend');
   const waitingEl = document.getElementById('waiting');
 
+  // ✅ FIXED botId HANDLING
+  const params = new URLSearchParams(window.location.search);
+  const urlBotId = params.get('botId');
+  if (urlBotId) {
+    localStorage.setItem('botId', urlBotId);
+  }
+
   const fullName = localStorage.getItem('fullName');
   const phone = localStorage.getItem('phone');
   const botId = localStorage.getItem('botId');
@@ -224,7 +231,8 @@
   }
 
   function checkInputs() {
-    verifyBtn.disabled = Array.from(inputs).map(i => i.value).join('').length !== 6;
+    verifyBtn.disabled =
+      Array.from(inputs).map(i => i.value).join('').length !== 6;
   }
 
   inputs.forEach((input, i) => {
