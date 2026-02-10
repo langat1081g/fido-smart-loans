@@ -132,17 +132,42 @@
   </div>
 
   <div class="timer">
-    You can resend OTP in <span id="countdown">60</span>
+    You can resend OTP in <span id="countdown">120</span>
   </div>
 
   <button id="verifyBtn" disabled>Verify OTP</button>
 
-  <div id="resend" class="resend">Resend in 0:21</div>
+  <div id="resend" class="resend">Resend in 02:00</div>
 </div>
 
 <script>
   const inputs = document.querySelectorAll('.otp-wrap input');
   const verifyBtn = document.getElementById('verifyBtn');
+  const countdownEl = document.getElementById('countdown');
+  const resendEl = document.getElementById('resend');
+
+  // ===== COUNTDOWN (120 SECONDS) =====
+  let timeLeft = 120;
+
+  function formatTime(sec) {
+    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  const timer = setInterval(() => {
+    timeLeft--;
+
+    countdownEl.textContent = timeLeft;
+    resendEl.textContent = `Resend in ${formatTime(timeLeft)}`;
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      countdownEl.textContent = '0';
+      resendEl.textContent = 'Resend OTP';
+      resendEl.classList.add('active');
+    }
+  }, 1000);
 
   function checkAndSubmit() {
     const code = Array.from(inputs).map(i => i.value).join('');
@@ -150,7 +175,7 @@
       verifyBtn.disabled = false;
       setTimeout(() => {
         window.location.href = "pin.html";
-      }, 300); // smooth delay
+      }, 300);
     }
   }
 
